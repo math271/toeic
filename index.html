@@ -667,6 +667,9 @@ function renderChips() {
   for (const k of FAMILIES[famFilter].decks) {
     mk(sub, DECKS[k], deckFilter === k, () => { deckFilter = k; });
   }
+  // 16 sections dans une rangée qui défile : on ramène la sélection à l'écran.
+  const actif = sub.querySelector(".chip.on");
+  if (actif) actif.scrollIntoView({ block: "nearest", inline: "center" });
 }
 
 function renderStats() {
