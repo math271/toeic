@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TOEIC Flashcards</title>
+
+<!-- Ecran d'accueil iOS : l'appli s'ouvre en plein ecran, sans barre Safari -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TOEIC">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F5F4EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131920" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root {
+    --bg: #F5F4EF;
+    --card: #FFFFFF;
+    --ink: #1C2B3A;
+    --muted: #6B7683;
+    --accent: #234E70;
+    --accent-soft: #E4EBF2;
+    --hl: #FFD449;
+    --again: #C4402F;
+    --again-soft: #F7E4E0;
+    --hard: #8A6D1F;
+    --hard-soft: #F5ECD2;
+    --good: #2E7D5B;
+    --good-soft: #DFEEE7;
+    --border: #E2DFD6;
+    --shadow: 0 2px 10px rgba(28, 43, 58, .08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131920;
+      --card: #1D2630;
+      --ink: #E9EBED;
+      --muted: #8D99A6;
+      --accent: #8FB4D9;
+      --accent-soft: #253444;
+      --hl: #D9B23A;
+      --again: #E07A63;
+      --again-soft: #3C2722;
+      --hard: #D3B44E;
+      --hard-soft: #362E18;
+      --good: #6CC49A;
+      --good-soft: #1F352B;
+      --border: #2C3742;
+      --shadow: 0 2px 10px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #131920; --card: #1D2630; --ink: #E9EBED; --muted: #8D99A6;
+    --accent: #8FB4D9; --accent-soft: #253444; --hl: #D9B23A;
+    --again: #E07A63; --again-soft: #3C2722; --hard: #D3B44E; --hard-soft: #362E18;
+    --good: #6CC49A; --good-soft: #1F352B; --border: #2C3742;
+    --shadow: 0 2px 10px rgba(0, 0, 0, .35);
+  }
+  :root[data-theme="light"] {
+    --bg: #F5F4EF; --card: #FFFFFF; --ink: #1C2B3A; --muted: #6B7683;
+    --accent: #234E70; --accent-soft: #E4EBF2; --hl: #FFD449;
+    --again: #C4402F; --again-soft: #F7E4E0; --hard: #8A6D1F; --hard-soft: #F5ECD2;
+    --good: #2E7D5B; --good-soft: #DFEEE7; --border: #E2DFD6;
+    --shadow: 0 2px 10px rgba(28, 43, 58, .08);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 100vh;
+  }
+  .app { max-width: 560px; margin: 0 auto; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; min-height: 100vh; }
+
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  header h1 { font-size: 1.05rem; margin: 0; letter-spacing: .02em; }
+  header h1 span { color: var(--accent); }
+  .stats { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto; border: 1px solid var(--border); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: 7px 14px; font-size: .82rem; cursor: pointer;
+  }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+  .chip:focus-visible, .card:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* 2e rangée : les sections de la famille choisie */
+  .chips.sub { margin-top: -6px; }
+  .chips.sub .chip { padding: 5px 11px; font-size: .76rem; }
+  .chips.sub .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+  .progress { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+  .progress > div { height: 100%; background: var(--accent); border-radius: 2px; transition: width .25s ease; }
+  @media (prefers-reduced-motion: reduce) { .progress > div, .face { transition: none !important; animation: none !important; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow);
+    min-height: 320px; padding: 22px; display: flex; flex-direction: column; cursor: pointer;
+    user-select: none;
+  }
+  .deck-tag { align-self: flex-start; font-size: .68rem; text-transform: uppercase; letter-spacing: .09em; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; font-weight: 600; }
+  .face { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 14px; text-align: center; padding: 18px 4px; animation: fadein .18s ease; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .prompt { font-size: 1.35rem; line-height: 1.45; text-wrap: balance; }
+  .prompt .gap { background: var(--hl); color: #1C2B3A; border-radius: 4px; padding: 0 8px; font-weight: 700; white-space: nowrap; }
+  .answer { font-family: Charter, Georgia, "Times New Roman", serif; font-size: 1.7rem; font-weight: 700; color: var(--accent); text-wrap: balance; line-height: 1.3; }
+  .extra { font-size: .95rem; color: var(--muted); line-height: 1.55; max-width: 42ch; margin: 0 auto; }
+  .extra em { color: var(--ink); font-style: italic; }
+  .extra b { color: var(--ink); }
+  .extra .en { font-family: Charter, Georgia, "Times New Roman", serif; color: var(--ink); font-style: italic; }
+  .extra .why { display: block; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .ref { font-size: .68rem; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); opacity: .8; }
+  .hint { text-align: center; font-size: .78rem; color: var(--muted); letter-spacing: .04em; }
+
+  .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .btn {
+    border: none; border-radius: 14px; padding: 14px 8px; font-size: .92rem; font-weight: 700; cursor: pointer;
+    display: flex; flex-direction: column; gap: 2px; align-items: center; font-family: inherit;
+  }
+  .btn small { font-weight: 400; font-size: .7rem; opacity: .75; }
+  .btn.again { background: var(--again-soft); color: var(--again); }
+  .btn.hard  { background: var(--hard-soft);  color: var(--hard); }
+  .btn.good  { background: var(--good-soft);  color: var(--good); }
+
+  .done { text-align: center; padding: 48px 16px; display: flex; flex-direction: column; gap: 16px; align-items: center; }
+  .done h2 { margin: 0; font-size: 1.3rem; }
+  .done p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.6; }
+  .btn-primary { background: var(--accent); color: var(--bg); border: none; border-radius: 14px; padding: 14px 22px; font-size: .95rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>TOEIC · <span>Flashcards</span></h1>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="chips" id="chips"></div>
+  <div class="chips sub hidden" id="chipsSub"></div>
+  <div class="progress"><div id="bar" style="width:0%"></div></div>
+
+  <div class="card hidden" id="card" role="button" tabindex="0" aria-label="Carte — toucher pour révéler la réponse">
+    <span class="deck-tag" id="deckTag"></span>
+    <div class="face" id="face"></div>
+  </div>
+  <div class="hint hidden" id="hint">TOUCHER LA CARTE POUR RÉVÉLER</div>
+
+  <div class="actions hidden" id="actions">
+    <button class="btn again" id="bAgain">Encore<small>&lt; 10 min</small></button>
+    <button class="btn hard" id="bHard">Difficile<small>demain</small></button>
+    <button class="btn good" id="bGood">Je sais<small id="goodIvl"></small></button>
+  </div>
+
+  <div class="done hidden" id="done">
+    <h2 id="doneTitle"></h2>
+    <p id="doneText"></p>
+    <button class="btn-primary" id="doneBtn"></button>
+  </div>
+</div>
+
+<script>
+const DECKS = {
+  // — Vocabulaire —
+  temps:  "Temps verbaux",
+  irr:    "Verbes irréguliers",
+  bureau: "Bureau & réunions",
+  fin:    "Finance & achats",
+  voy:    "Voyages",
+  rh:     "RH & emploi",
+  faux:   "Faux-amis",
+  // — Grammaire : une section = un chapitre de la fiche 2, dans le même ordre —
+  "g-nature": "Nature du mot",
+  "g-accord": "Accord sujet-verbe",
+  "g-temps":  "Le verbe",
+  "g-passif": "Le passif",
+  "g-ing":    "Gérondif / infinitif",
+  "g-modaux": "Modaux",
+  "g-prep":   "Prépositions",
+  "g-det":    "Déterminants",
+  "g-quant":  "Quantité & comparaison",
+  "g-rel":    "Relatifs",
+  "g-pron":   "Pronoms",
+  "g-conn":   "Mots de liaison",
+  "g-cond":   "Conditionnel",
+  "g-ordre":  "Ordre des mots",
+  "g-confus": "Mots confondus",
+  "g-figees": "Expressions figées"
+};
+
+// Les deux familles de la 1re rangée de pastilles.
+const FAMILIES = {
+  voc:  { label: "Vocabulaire", decks: ["temps", "irr", "bureau", "fin", "voy", "rh", "faux"] },
+  gram: { label: "Grammaire",   decks: ["g-nature", "g-accord", "g-temps", "g-passif", "g-ing", "g-modaux",
+                                        "g-prep", "g-det", "g-quant", "g-rel", "g-pron", "g-conn",
+                                        "g-cond", "g-ordre", "g-confus", "g-figees"] }
+};
+
+const familyOf = deck => Object.keys(FAMILIES).find(f => FAMILIES[f].decks.includes(deck)) || "all";
+
+// f: recto — a: réponse — x: règle ou exemple. Dans f, «___» devient un trou surligné.
+// n: numéro de la règle dans la fiche 2 (cartes de grammaire uniquement), affiché au verso.
+const CARDS = [
+  // ——— TEMPS VERBAUX ———
+  {d:"temps", f:"Yesterday, the manager ___ (sign) the contract.", a:"signed", x:"Prétérit : action finie et datée — « yesterday » impose le passé simple."},
+  {d:"temps", f:"She ___ (work) here since 2019.", a:"has worked", x:"Present perfect : « since » + point de départ → action qui continue encore."},
+  {d:"temps", f:"Look! The printer ___ (not work).", a:"isn't working", x:"Présent continu (be + -ing) : ça se passe en ce moment même — « Look! »."},
+  {d:"temps", f:"We usually ___ (ship) orders within 24 hours.", a:"ship", x:"Présent simple : habitude, routine — « usually »."},
+  {d:"temps", f:"The meeting ___ (start) at 9 a.m. every Monday.", a:"starts", x:"Présent simple + -s à la 3e personne : événement régulier."},
+  {d:"temps", f:"By the time we arrived, the presentation ___ (already begin).", a:"had already begun", x:"Past perfect (had + participe passé) : action antérieure à une autre action passée."},
+  {d:"temps", f:"If sales increase, we ___ (hire) more staff.", a:"will hire", x:"1er conditionnel : if + présent, puis will + base verbale."},
+  {d:"temps", f:"If I had more time, I ___ (review) the report.", a:"would review", x:"2e conditionnel (hypothèse irréelle) : if + prétérit, puis would + base verbale."},
+  {d:"temps", f:"The invoice ___ (send) to the client last Friday.", a:"was sent", x:"Passif au prétérit (be + participe passé) : le sujet subit l'action."},
+  {d:"temps", f:"Our products ___ (make) in Germany.", a:"are made", x:"Passif au présent : are/is + participe passé."},
+  {d:"temps", f:"She ___ (just finish) the report.", a:"has just finished", x:"Present perfect + « just » : passé très récent (« elle vient de finir »)."},
+  {d:"temps", f:"I ___ (call) you as soon as I arrive.", a:"will call", x:"Futur dans la principale, mais PRÉSENT après « as soon as / when »."},
+  {d:"temps", f:"While I ___ (drive), the client called.", a:"was driving", x:"Passé continu : action en cours, interrompue par une autre (prétérit)."},
+  {d:"temps", f:"They ___ (negotiate) for two hours when the CEO joined.", a:"had been negotiating", x:"Past perfect continu : durée en cours avant un moment du passé."},
+  {d:"temps", f:"Water ___ (boil) at 100 °C.", a:"boils", x:"Présent simple : vérité générale."},
+  {d:"temps", f:"We ___ (meet) the supplier tomorrow at 3 p.m. — c'est déjà planifié.", a:"are meeting", x:"Présent continu pour un rendez-vous déjà arrangé."},
+  {d:"temps", f:"The train ___ (leave) at 6:45 tomorrow morning.", a:"leaves", x:"Présent simple pour un horaire officiel (train, avion, programme)."},
+  {d:"temps", f:"By 2030, the company ___ (double) its revenue.", a:"will have doubled", x:"Futur antérieur : will have + participe passé — « by + date future »."},
+  {d:"temps", f:"We ___ (use) fax machines, but not anymore.", a:"used to use", x:"« used to + base verbale » : habitude passée révolue."},
+  {d:"temps", f:"___ you ever ___ (visit) our Tokyo office?", a:"Have … visited", x:"« ever » appelle le present perfect : expérience de vie."},
+  {d:"temps", f:"The parcel hasn't arrived ___. (déjà / encore ?)", a:"yet", x:"« yet » en fin de phrase négative ou de question + present perfect."},
+  {d:"temps", f:"Two years ___, we opened our first store. (mot manquant)", a:"ago", x:"« ago » se place APRÈS la durée et impose le prétérit."},
+  {d:"temps", f:"Mot déclencheur : « last month », « in 2020 » → quel temps ?", a:"Prétérit", x:"Date ou moment passé précis → passé simple. <em>We launched the app in 2020.</em>"},
+  {d:"temps", f:"Mot déclencheur : « for » ou « since » → quel temps ?", a:"Present perfect", x:"for + durée, since + point de départ. <em>I have lived here for ten years.</em>"},
+  {d:"temps", f:"Mot déclencheur : « at the moment », « currently » → quel temps ?", a:"Présent continu", x:"<em>We are currently updating the website.</em>"},
+  {d:"temps", f:"Mot déclencheur : « every day », « often », « usually » → quel temps ?", a:"Présent simple", x:"Fréquence, habitude. <em>He often travels for work.</em>"},
+  {d:"temps", f:"Mot déclencheur : « yesterday », « ago » → quel temps ?", a:"Prétérit", x:"<em>She called me two hours ago.</em>"},
+  {d:"temps", f:"Mot déclencheur : « next week », « soon » → quel temps ?", a:"Futur (will / be going to)", x:"<em>We will launch the product next week.</em>"},
+  {d:"temps", f:"You ___ submit the form before Friday. (obligation forte)", a:"must", x:"« must » + base verbale (jamais de « to ») : obligation."},
+  {d:"temps", f:"Après « did », le verbe se met à quelle forme ? « Did she ___ (send) the file? »", a:"send (base verbale)", x:"L'auxiliaire did porte le passé — le verbe reste à la base : Did she send…?"},
+
+  // ——— VERBES IRRÉGULIERS (prétérit / participe passé) ———
+  {d:"irr", f:"payer — <b>pay</b>, ___, ___", a:"paid / paid", x:"<em>The invoice was paid last week.</em>"},
+  {d:"irr", f:"envoyer — <b>send</b>, ___, ___", a:"sent / sent", x:"<em>I sent the report yesterday.</em>"},
+  {d:"irr", f:"acheter — <b>buy</b>, ___, ___", a:"bought / bought", x:"<em>We bought new equipment.</em>"},
+  {d:"irr", f:"rencontrer — <b>meet</b>, ___, ___", a:"met / met", x:"<em>I met the client on Monday.</em>"},
+  {d:"irr", f:"trouver — <b>find</b>, ___, ___", a:"found / found", x:"<em>We found a cheaper supplier.</em>"},
+  {d:"irr", f:"prendre — <b>take</b>, ___, ___", a:"took / taken", x:"<em>She has taken three days off.</em>"},
+  {d:"irr", f:"écrire — <b>write</b>, ___, ___", a:"wrote / written", x:"<em>The report was written in English.</em>"},
+  {d:"irr", f:"choisir — <b>choose</b>, ___, ___", a:"chose / chosen", x:"<em>They chose our proposal.</em>"},
+  {d:"irr", f:"augmenter / se lever — <b>rise</b>, ___, ___", a:"rose / risen", x:"<em>Prices rose by 5% last year.</em>"},
+  {d:"irr", f:"diriger / mener — <b>lead</b>, ___, ___", a:"led / led", x:"<em>She led the project team.</em>"},
+  {d:"irr", f:"tenir / organiser — <b>hold</b>, ___, ___", a:"held / held", x:"<em>The meeting was held online.</em>"},
+  {d:"irr", f:"croître — <b>grow</b>, ___, ___", a:"grew / grown", x:"<em>Sales have grown steadily.</em>"},
+
+  // ——— BUREAU & RÉUNIONS ———
+  {d:"bureau", f:"une réunion", a:"a meeting", x:"<em>The meeting was postponed until Friday.</em>"},
+  {d:"bureau", f:"l'ordre du jour", a:"the agenda", x:"<em>The first item on the agenda is the budget.</em>"},
+  {d:"bureau", f:"le compte rendu (de réunion)", a:"the minutes", x:"<em>Who will take the minutes today?</em>"},
+  {d:"bureau", f:"planifier / programmer", a:"to schedule", x:"<em>The call is scheduled for 2 p.m.</em>"},
+  {d:"bureau", f:"reporter (à plus tard)", a:"to postpone", x:"<em>The launch has been postponed.</em>"},
+  {d:"bureau", f:"annuler", a:"to cancel", x:"<em>The flight was cancelled.</em>"},
+  {d:"bureau", f:"assister à / participer à", a:"to attend", x:"<em>Twenty people attended the seminar.</em> ⚠️ pas « attendre » !"},
+  {d:"bureau", f:"une pièce jointe", a:"an attachment", x:"<em>Please see the attachment.</em>"},
+  {d:"bureau", f:"joindre (un fichier)", a:"to attach", x:"<em>I have attached the invoice.</em>"},
+  {d:"bureau", f:"une date limite / échéance", a:"a deadline", x:"<em>We must meet the deadline.</em> (meet a deadline = respecter)"},
+  {d:"bureau", f:"un brouillon / une ébauche", a:"a draft", x:"<em>Here is the first draft of the contract.</em>"},
+  {d:"bureau", f:"réserver (salle, billet, table)", a:"to book", x:"<em>I booked a meeting room for 10 a.m.</em>"},
+  {d:"bureau", f:"les fournitures de bureau", a:"office supplies", x:"<em>We need to order more supplies.</em>"},
+  {d:"bureau", f:"le télétravail / à distance", a:"remote work / remotely", x:"<em>She works remotely on Fridays.</em>"},
+  {d:"bureau", f:"transférer (un e-mail)", a:"to forward", x:"<em>Could you forward me his e-mail?</em>"},
+  {d:"bureau", f:"rappeler (au téléphone)", a:"to call back", x:"<em>He is in a meeting — he will call you back.</em>"},
+  {d:"bureau", f:"joindre quelqu'un (le contacter)", a:"to reach", x:"<em>You can reach me at this number.</em>"},
+  {d:"bureau", f:"aborder / traiter (un problème)", a:"to address", x:"<em>We need to address this issue.</em>"},
+  {d:"bureau", f:"souligner / mettre en avant", a:"to highlight", x:"<em>The report highlights three risks.</em>"},
+  {d:"bureau", f:"faire circuler / diffuser", a:"to circulate", x:"<em>The memo was circulated to all staff.</em>"},
+  {d:"bureau", f:"actuel / en cours", a:"current", x:"<em>The current project ends in June.</em>"},
+  {d:"bureau", f:"un siège social", a:"headquarters (HQ)", x:"<em>Our headquarters are in Lyon.</em>"},
+
+  // ——— FINANCE & ACHATS ———
+  {d:"fin", f:"une facture", a:"an invoice", x:"<em>The invoice is due within 30 days.</em>"},
+  {d:"fin", f:"un devis", a:"a quote / an estimate", x:"<em>Could you send us a quote?</em>"},
+  {d:"fin", f:"un reçu", a:"a receipt", x:"<em>Keep the receipt for your expenses.</em>"},
+  {d:"fin", f:"une remise / réduction", a:"a discount", x:"<em>We offer a 10% discount on bulk orders.</em>"},
+  {d:"fin", f:"un remboursement", a:"a refund", x:"<em>You can get a full refund within 14 days.</em>"},
+  {d:"fin", f:"le chiffre d'affaires", a:"turnover / revenue", x:"<em>Revenue increased by 8% this quarter.</em>"},
+  {d:"fin", f:"le bénéfice", a:"the profit", x:"<em>The company made a profit last year.</em>"},
+  {d:"fin", f:"une perte", a:"a loss", x:"<em>They reported heavy losses.</em>"},
+  {d:"fin", f:"les dépenses / frais", a:"expenses", x:"<em>Travel expenses are reimbursed.</em>"},
+  {d:"fin", f:"un paiement en retard", a:"an overdue payment", x:"<em>Your account is overdue.</em>"},
+  {d:"fin", f:"augmenter", a:"to increase / to rise", x:"<em>Prices are expected to rise.</em>"},
+  {d:"fin", f:"diminuer / baisser", a:"to decrease / to drop", x:"<em>Sales dropped in March.</em>"},
+  {d:"fin", f:"un fournisseur", a:"a supplier", x:"<em>We changed suppliers last year.</em>"},
+  {d:"fin", f:"un entrepôt", a:"a warehouse", x:"<em>The goods are stored in the warehouse.</em>"},
+  {d:"fin", f:"le stock / l'inventaire", a:"inventory / stock", x:"<em>We check the inventory every month.</em>"},
+  {d:"fin", f:"une commande", a:"an order", x:"<em>Your order has been shipped.</em>"},
+  {d:"fin", f:"expédier", a:"to ship", x:"<em>We ship worldwide.</em>"},
+  {d:"fin", f:"la livraison", a:"the delivery", x:"<em>Delivery takes 3 to 5 business days.</em>"},
+  {d:"fin", f:"en rupture de stock", a:"out of stock", x:"<em>This item is currently out of stock.</em>"},
+  {d:"fin", f:"la vente en gros / au détail", a:"wholesale / retail", x:"<em>They sell both wholesale and retail.</em>"},
+  {d:"fin", f:"un budget serré", a:"a tight budget", x:"<em>We are on a tight budget this year.</em>"},
+  {d:"fin", f:"rentable", a:"profitable", x:"<em>The new branch became profitable quickly.</em>"},
+  {d:"fin", f:"un compte bancaire", a:"a bank account", x:"<em>The money was transferred to your account.</em>"},
+  {d:"fin", f:"gratuit / sans frais", a:"free of charge", x:"<em>Shipping is free of charge.</em>"},
+
+  // ——— VOYAGES ———
+  {d:"voy", f:"un vol", a:"a flight", x:"<em>My flight was delayed by two hours.</em>"},
+  {d:"voy", f:"une correspondance (avion)", a:"a connecting flight / connection", x:"<em>I missed my connection in Amsterdam.</em>"},
+  {d:"voy", f:"l'embarquement", a:"boarding", x:"<em>Boarding starts at gate 12.</em>"},
+  {d:"voy", f:"une carte d'embarquement", a:"a boarding pass", x:"<em>Please show your boarding pass.</em>"},
+  {d:"voy", f:"retardé", a:"delayed", x:"<em>The train is delayed due to bad weather.</em>"},
+  {d:"voy", f:"un aller simple", a:"a one-way ticket", x:"<em>A one-way ticket to Boston, please.</em>"},
+  {d:"voy", f:"un aller-retour", a:"a round trip / return ticket", x:"<em>Is it cheaper to book a round trip?</em>"},
+  {d:"voy", f:"les bagages", a:"luggage / baggage", x:"<em>Indénombrable : my luggage IS heavy.</em>"},
+  {d:"voy", f:"louer une voiture", a:"to rent a car", x:"<em>We rented a car at the airport.</em>"},
+  {d:"voy", f:"l'hébergement", a:"accommodation", x:"<em>Accommodation is included in the price.</em>"},
+  {d:"voy", f:"un séjour", a:"a stay", x:"<em>Enjoy your stay!</em>"},
+  {d:"voy", f:"la réception (hôtel)", a:"the front desk / reception", x:"<em>Please leave your key at the front desk.</em>"},
+  {d:"voy", f:"disponible", a:"available", x:"<em>No rooms are available on that date.</em>"},
+  {d:"voy", f:"un horaire (train, bus)", a:"a schedule / timetable", x:"<em>Check the train schedule online.</em>"},
+  {d:"voy", f:"à l'heure", a:"on time", x:"<em>The flight arrived on time.</em>"},
+  {d:"voy", f:"un itinéraire (de voyage)", a:"an itinerary", x:"<em>Here is the itinerary for your trip.</em>"},
+  {d:"voy", f:"enregistrer / s'enregistrer", a:"to check in", x:"<em>You can check in online 24 hours before.</em>"},
+  {d:"voy", f:"régler la note / partir (hôtel)", a:"to check out", x:"<em>Check-out is at 11 a.m.</em>"},
+
+  // ——— RH & EMPLOI ———
+  {d:"rh", f:"embaucher", a:"to hire", x:"<em>We are hiring two engineers.</em>"},
+  {d:"rh", f:"licencier", a:"to dismiss / to lay off", x:"<em>Fifty workers were laid off.</em>"},
+  {d:"rh", f:"démissionner", a:"to resign", x:"<em>She resigned last month.</em>"},
+  {d:"rh", f:"un candidat", a:"an applicant / a candidate", x:"<em>We interviewed six applicants.</em>"},
+  {d:"rh", f:"postuler à", a:"to apply for", x:"<em>He applied for the sales position.</em>"},
+  {d:"rh", f:"un entretien d'embauche", a:"a job interview", x:"<em>I have an interview on Thursday.</em>"},
+  {d:"rh", f:"un CV", a:"a résumé / a CV", x:"<em>Please send your résumé and a cover letter.</em>"},
+  {d:"rh", f:"une lettre de motivation", a:"a cover letter", x:"<em>Attach a cover letter to your application.</em>"},
+  {d:"rh", f:"un poste", a:"a position", x:"<em>The position is still open.</em>"},
+  {d:"rh", f:"les compétences", a:"skills", x:"<em>Good communication skills are required.</em>"},
+  {d:"rh", f:"une formation", a:"a training (course)", x:"<em>All new staff receive training.</em>"},
+  {d:"rh", f:"le salaire", a:"the salary / wages", x:"<em>The salary is negotiable.</em>"},
+  {d:"rh", f:"une augmentation (de salaire)", a:"a raise / a pay rise", x:"<em>She asked for a raise.</em>"},
+  {d:"rh", f:"les avantages (sociaux)", a:"benefits", x:"<em>The benefits include health insurance.</em>"},
+  {d:"rh", f:"les congés payés", a:"paid leave / paid vacation", x:"<em>You get 25 days of paid leave.</em>"},
+  {d:"rh", f:"un arrêt maladie", a:"sick leave", x:"<em>He is on sick leave this week.</em>"},
+  {d:"rh", f:"prendre sa retraite", a:"to retire", x:"<em>She will retire next year.</em>"},
+  {d:"rh", f:"le personnel / les effectifs", a:"the staff / workforce", x:"<em>The staff ARE well trained.</em> (collectif)"},
+  {d:"rh", f:"un stagiaire", a:"an intern", x:"<em>We take on interns every summer.</em>"},
+  {d:"rh", f:"les exigences (du poste)", a:"the requirements", x:"<em>She meets all the requirements.</em>"},
+  {d:"rh", f:"une promotion / être promu", a:"a promotion / to be promoted", x:"<em>He was promoted to manager.</em>"},
+
+  // ——— FAUX-AMIS ———
+  {d:"faux", f:"⚠️ « actually » veut dire…", a:"en fait, en réalité", x:"PAS « actuellement » ! <em>Actually, I disagree.</em> Actuellement = <em>currently</em>."},
+  {d:"faux", f:"⚠️ « eventually » veut dire…", a:"finalement, au bout du compte", x:"PAS « éventuellement » ! Éventuellement = <em>possibly</em>."},
+  {d:"faux", f:"⚠️ « to resume » veut dire…", a:"reprendre (après une pause)", x:"PAS « résumer » ! Résumer = <em>to summarize</em>. <em>The meeting resumed at 2 p.m.</em>"},
+  {d:"faux", f:"⚠️ « to achieve » veut dire…", a:"réaliser, atteindre (un objectif)", x:"PAS « achever » ! Achever = <em>to complete</em>. <em>We achieved our sales target.</em>"},
+  {d:"faux", f:"⚠️ « a library » veut dire…", a:"une bibliothèque", x:"Une librairie = <em>a bookstore</em>."},
+  {d:"faux", f:"⚠️ « to attend » veut dire…", a:"assister à, participer à", x:"PAS « attendre » ! Attendre = <em>to wait (for)</em>."},
+  {d:"faux", f:"⚠️ « to assist » veut dire…", a:"aider", x:"Assister à (un événement) = <em>to attend</em>."},
+  {d:"faux", f:"⚠️ « to demand » veut dire…", a:"exiger", x:"PAS « demander » (poliment) ! Demander = <em>to ask (for)</em>."},
+  {d:"faux", f:"⚠️ « fabric » veut dire…", a:"du tissu", x:"Une fabrique/usine = <em>a factory</em>."},
+  {d:"faux", f:"⚠️ « location » veut dire…", a:"un emplacement, un lieu", x:"Une location = <em>a rental</em>. <em>The office is in a great location.</em>"},
+  {d:"faux", f:"⚠️ « sensible » veut dire…", a:"raisonnable, sensé", x:"Sensible (émotif) = <em>sensitive</em>."},
+  {d:"faux", f:"⚠️ « comprehensive » veut dire…", a:"complet, exhaustif", x:"Compréhensif = <em>understanding</em>. <em>A comprehensive report.</em>"},
+  {d:"faux", f:"⚠️ « to deceive » veut dire…", a:"tromper, duper", x:"Décevoir = <em>to disappoint</em>."},
+  {d:"faux", f:"⚠️ « a journey » veut dire…", a:"un trajet, un voyage", x:"Une journée = <em>a day</em>."},
+  {d:"faux", f:"⚠️ « to rest » veut dire…", a:"se reposer", x:"Rester = <em>to stay</em>. <em>The rest</em> = le reste."},
+  {d:"faux", f:"⚠️ « an advertisement » veut dire…", a:"une publicité", x:"Un avertissement = <em>a warning</em>."},
+
+  // ——— GRAMMAIRE · NATURE DU MOT ———
+  {d:"g-nature", n:1, f:"The board reached a ___ decision on the merger.", a:"final", x:"Entre un article ou un possessif (<span class=\"en\">a, the, our, this</span>) et un nom, il faut un adjectif. <span class=\"why\"><b>final</b>ly est un adverbe, <b>final</b>ize un verbe : ni l'un ni l'autre ne peut se glisser entre <span class=\"en\">a</span> et <span class=\"en\">decision</span>.</span>"},
+  {d:"g-nature", n:2, f:"The technicians completed the installation ___.", a:"quickly", x:"Si la phrase est déjà complète (sujet + verbe + complément), le trou reçoit un adverbe en <span class=\"en\">-ly</span>. <span class=\"why\">Un adjectif (<span class=\"en\">quick</span>) qualifierait un nom ; ici c'est la manière de faire l'action → adverbe.</span>"},
+  {d:"g-nature", n:3, f:"All applicants must be ___ qualified for the position.", a:"highly", x:"Un adverbe peut aussi renforcer un adjectif : <span class=\"en\">highly qualified, fully aware, extremely useful, particularly difficult</span>. <span class=\"why\"><span class=\"en\">high</span> est l'adjectif ; devant un autre adjectif il faut la forme en <span class=\"en\">-ly</span>.</span>"},
+  {d:"g-nature", n:4, f:"___ of the annual budget is expected by Friday.", a:"Approval", x:"Suffixes de noms à repérer : <span class=\"en\">-tion, -sion, -ment, -ness, -ity, -ance/-ence, -ship, -al</span> (<span class=\"en\">approval, renewal</span>). <span class=\"why\">Une phrase anglaise a toujours un groupe nominal comme sujet — jamais un verbe nu (<span class=\"en\">approve</span>).</span>"},
+  {d:"g-nature", n:5, f:"Thank you for ___ us of the schedule change.", a:"informing", x:"Jamais de verbe conjugué après <span class=\"en\">for, of, in, by, about, without</span>. <span class=\"why\">On met <span class=\"en\">-ing</span> ou un nom. C'est la règle la plus rentable du TOEIC : elle élimine deux réponses sur quatre.</span>"},
+  {d:"g-nature", n:6, f:"The ___ will contact all shortlisted candidates next week.", a:"recruiter", x:"Demande-toi si le mot manquant <b>agit</b> (une personne) ou s'il <b>est</b> l'activité. <span class=\"why\"><span class=\"en\">recruitment</span> = le recrutement, qui ne téléphone à personne. Le verbe <span class=\"en\">will contact</span> exige un être humain.</span>"},
+  {d:"g-nature", n:7, f:"Despite rising costs, our prices remain ___.", a:"competitive", x:"Ces verbes d'état décrivent le sujet : ils sont suivis d'un adjectif, pas d'un adverbe. <span class=\"why\"><span class=\"en\">competition</span> (nom) et <span class=\"en\">compete</span> (verbe) sont là pour te piéger ; <span class=\"en\">remain</span> appelle un adjectif.</span>"},
+  {d:"g-nature", n:8, f:"All visitors must follow the ___ regulations posted at the entrance.", a:"safety", x:"Le premier nom joue le rôle d'adjectif et reste au <b>singulier</b> : <span class=\"en\">safety regulations, sales figures, customer service, expense report</span>. <span class=\"why\">Ni <span class=\"en\">safely</span> (adverbe) ni <span class=\"en\">safe</span> (adjectif) : c'est bien un nom qui en qualifie un autre.</span>"},
+  {d:"g-nature", n:9, f:"The audience was clearly ___ by the keynote speech.", a:"impressed", x:"Une chose est <span class=\"en\">interesting</span>, une personne est <span class=\"en\">interested</span>. Idem <span class=\"en\">confusing/confused, satisfying/satisfied, disappointing/disappointed</span>. <span class=\"why\">Les gens ressentent → <span class=\"en\">-ed</span>. Le discours, lui, était <span class=\"en\">impressive</span>.</span>"},
+  {d:"g-nature", n:10, f:"The logistics team worked ___ to meet the deadline.", a:"hard", x:"<span class=\"en\">hard, fast, late, early, well, daily</span> sont déjà des adverbes. Mais <span class=\"en\">hardly</span> = à peine, et <span class=\"en\">lately</span> = récemment : le sens change du tout au tout. <span class=\"why\"><span class=\"en\">hardly</span> voudrait dire qu'elle n'a presque pas travaillé. Le piège favori du TOEIC.</span>"},
+  {d:"g-nature", n:11, f:"___, the shipment arrived two days behind schedule.", a:"Unfortunately", x:"Il commente toute la phrase : <span class=\"en\">Unfortunately, Consequently, Surprisingly, Reportedly</span>."},
+  {d:"g-nature", n:12, f:"We received an ___ detailed proposal from the vendor.", a:"unusually", x:"Ne t'arrête pas au mot juste avant le trou : lis jusqu'au nom pour savoir si tu as besoin d'un adjectif ou d'un adverbe. <span class=\"why\">Le trou touche <span class=\"en\">detailed</span> (un adjectif), pas <span class=\"en\">proposal</span> → adverbe.</span>"},
+  // ——— GRAMMAIRE · ACCORD SUJET-VERBE ———
+  {d:"g-accord", n:13, f:"The list of approved suppliers ___ posted on the intranet.", a:"is", x:"Ce qui suit <span class=\"en\">of, in, with, for</span> ne peut pas être le sujet. <span class=\"why\">Le sujet est <span class=\"en\">the list</span> (singulier), pas <span class=\"en\">suppliers</span>. Barre <span class=\"en\">of approved suppliers</span> et l'accord devient évident.</span>"},
+  {d:"g-accord", n:14, f:"Each of the regional branches ___ its own manager.", a:"has", x:"Même suivis de <span class=\"en\">of</span> + pluriel, ils restent singuliers. <span class=\"why\"><span class=\"en\">branches</span> est au pluriel mais le sujet réel est <span class=\"en\">each</span>.</span>"},
+  {d:"g-accord", n:15, f:"A number of employees ___ requested remote work.", a:"have", x:"<span class=\"en\">A number of</span> = « plusieurs ». <span class=\"en\">The number of</span> = « le nombre de ». <span class=\"why\">Comparaison à retenir : <span class=\"en\">The number of employees <b>has</b> increased.</span></span>"},
+  {d:"g-accord", n:16, f:"The information you requested ___ attached to this message.", a:"is", x:"<span class=\"en\">information, equipment, advice, research, furniture, luggage, machinery, feedback, merchandise, staff</span>. <span class=\"why\"><span class=\"en\">informations</span> n'existe pas. Pour compter : <span class=\"en\">a piece of information, two pieces of equipment</span>.</span>"},
+  {d:"g-accord", n:17, f:"Neither the manager nor her assistants ___ available this afternoon.", a:"are", x:"Le verbe s'accorde avec le second élément, celui qui touche le verbe. <span class=\"why\">Inverse les deux et l'accord change : <span class=\"en\">Neither the assistants nor the manager <b>is</b> available.</span></span>"},
+  {d:"g-accord", n:18, f:"The director, as well as her two assistants, ___ attending the trade fair.", a:"is", x:"L'ajout entre virgules n'entre pas dans le sujet. <span class=\"why\">Avec <span class=\"en\">and</span>, ce serait pluriel. Avec <span class=\"en\">as well as</span>, non.</span>"},
+  {d:"g-accord", n:19, f:"Both the CEO and the CFO ___ signed the agreement.", a:"have", x:"« both … and » relie deux sujets : le verbe est toujours au pluriel."},
+  {d:"g-accord", n:20, f:"Everyone in the department ___ to complete the survey by Friday.", a:"needs", x:"Tous les composés en <span class=\"en\">-one, -body, -thing</span> sont singuliers, même s'ils désignent un groupe."},
+  {d:"g-accord", n:21, f:"Reducing operating costs ___ our top priority this year.", a:"is", x:"Le sujet est l'action, pas le nom qu'elle contient : verbe au singulier. <span class=\"why\">Le sujet est l'action <span class=\"en\">reducing</span>, pas <span class=\"en\">costs</span>.</span>"},
+  {d:"g-accord", n:22, f:"There ___ several errors in the invoice you sent.", a:"are", x:"L'accord se fait avec ce qui suit le verbe, pas avec « there »."},
+  {d:"g-accord", n:23, f:"Sixty percent of the employees ___ in favor of the new schedule.", a:"are", x:"C'est le nom placé après « of » qui commande l'accord. <span class=\"why\">Mais : <span class=\"en\">Sixty percent of the budget <b>has</b> been spent</span> — <span class=\"en\">budget</span> est singulier.</span>"},
+  {d:"g-accord", n:24, f:"Attached ___ the documents you requested.", a:"are", x:"Après un complément de lieu placé en tête, le sujet passe derrière le verbe. <span class=\"why\">Le vrai sujet est <span class=\"en\">the documents</span> → pluriel.</span>"},
+  // ——— GRAMMAIRE · LE VERBE ———
+  {d:"g-temps", n:25, f:"We will ship your order as soon as we ___ your payment.", a:"receive", x:"Le futur est déjà porté par la principale ; la subordonnée reste au présent. <span class=\"why\"><span class=\"en\">will receive</span> est la réponse piège, et elle est fausse.</span>"},
+  {d:"g-temps", n:26, f:"By the time the audit ends, we ___ every document.", a:"will have submitted", x:"<span class=\"en\">By the time</span> + prétérit → <span class=\"en\">past perfect</span> (<span class=\"en\">had</span> + participe passé)."},
+  {d:"g-temps", n:27, f:"Ms. Tanaka has managed the Osaka office ___ 2018.", a:"since", x:"« since » + point de départ, « for » + durée. <span class=\"why\"><span class=\"en\">for</span> demanderait une durée : <span class=\"en\">for six years</span>.</span>"},
+  {d:"g-temps", n:28, f:"Our engineers ___ on the prototype for six months.", a:"have been working", x:"Insiste sur le fait que l'action continue au moment où l'on parle."},
+  {d:"g-temps", n:29, f:"Our accountants are used to ___ under pressure.", a:"working", x:"<span class=\"en\">used to</span> = habitude passée révolue. <span class=\"en\">be used to</span> = être habitué à. <span class=\"why\">Après <span class=\"en\">be used to</span>, gérondif obligatoire — <span class=\"en\">to</span> est ici une préposition, pas un infinitif.</span>"},
+  {d:"g-temps", n:30, f:"The package ___ three separate installation manuals.", a:"contains", x:"<span class=\"en\">know, own, belong, consist, contain, prefer, need, seem, cost, include</span>. <span class=\"why\"><span class=\"en\">is containing</span> est grammaticalement faux.</span>"},
+  {d:"g-temps", n:31, f:"The company ___ its Berlin office in 2019.", a:"opened", x:"Même si le résultat compte encore aujourd'hui. <span class=\"why\"><span class=\"en\">has opened</span> est impossible avec <span class=\"en\">in 2019</span> : le present perfect refuse les dates précises.</span>"},
+  {d:"g-temps", n:32, f:"The power went out while the team ___ the presentation.", a:"was rehearsing", x:"L'action longue prend was/were + -ing, l'action courte l'interrompt au prétérit."},
+  {d:"g-temps", n:33, f:"The shuttle ___ the hotel every hour on the hour.", a:"leaves", x:"Un horaire officiel se dit au présent simple, même pour demain. <span class=\"why\">Même pour demain : <span class=\"en\">The flight leaves at 7 a.m. tomorrow.</span></span>"},
+  {d:"g-temps", n:34, f:"When we arrived at the venue, the ceremony ___.", a:"had already begun", x:"La plus ancienne des deux actions prend « had » + participe passé."},
+  {d:"g-temps", n:35, f:"We ___ to open two new stores next quarter.", a:"are going", x:"<span class=\"en\">will</span> = décision au moment de parler ; <span class=\"en\">be going to</span> = projet établi. <span class=\"why\">En Part 6, le contexte tranche : si le plan est déjà annoncé avant, prends <span class=\"en\">be going to</span>.</span>"},
+  {d:"g-temps", n:36, f:"___ the contract, the client requested two changes.", a:"After reviewing", x:"<span class=\"en\">Having reviewed…, After receiving…</span> : celui qui fait l'action est le sujet qui suit la virgule. <span class=\"why\">Le client relit ET demande. Si les deux sujets diffèrent, la phrase est fausse.</span>"},
+  // ——— GRAMMAIRE · LE PASSIF ———
+  {d:"g-passif", n:37, f:"All applications ___ by the hiring committee within two weeks.", a:"are reviewed", x:"Le passif s'emploie quand le sujet subit l'action au lieu de la faire. <span class=\"why\">Les candidatures ne relisent rien : elles sont relues.</span>"},
+  {d:"g-passif", n:38, f:"The safety report must ___ before Friday.", a:"be completed", x:"L'ordre ne change jamais : <span class=\"en\">must be sent, should be checked, can be arranged</span>. <span class=\"why\">Ni <span class=\"en\">must completed</span>, ni <span class=\"en\">must be completing</span>.</span>"},
+  {d:"g-passif", n:39, f:"Your request ___ to the technical team.", a:"has been forwarded", x:"have/has been + participe passé : le résultat est acquis."},
+  {d:"g-passif", n:40, f:"The winner of the contract is expected ___ tomorrow morning.", a:"to be announced", x:"Après expect, be likely, be scheduled : « to be » + participe passé."},
+  {d:"g-passif", n:41, f:"Please sign the two forms ___ to this email.", a:"attached", x:"<span class=\"en\">the documents attached</span> = <span class=\"en\">the documents which are attached</span>. Le TOEIC économise les mots comme ça en permanence."},
+  {d:"g-passif", n:42, f:"The annual conference ___ for the first week of October.", a:"is scheduled", x:"<span class=\"en\">be located, be scheduled, be entitled to, be required to, be based in, be involved in, be committed to, be dedicated to, be permitted to</span>."},
+  {d:"g-passif", n:43, f:"The proposal was approved ___ the board of directors.", a:"by", x:"Dans un texte professionnel, on l'omet le plus souvent : personne n'est désigné."},
+  {d:"g-passif", n:44, f:"The incident ___ during the night shift.", a:"occurred", x:"Les verbes intransitifs : <span class=\"en\">arrive, happen, occur, rise, remain, become</span>. Impossible de dire <span class=\"en\">was happened</span>. <span class=\"why\"><span class=\"en\">was occurred</span> est une faute classique en Part 5.</span>"},
+  {d:"g-passif", n:45, f:"Our connecting flight ___ cancelled because of the storm.", a:"got", x:"Très courant dans les Parts 3 et 4, à la place de <span class=\"en\">be</span>."},
+  // ——— GRAMMAIRE · GÉRONDIF / INFINITIF ———
+  {d:"g-ing", n:46, f:"You can reduce costs by ___ suppliers every two years.", a:"comparing", x:"<span class=\"en\">before, after, without, by, in, for, about, instead of, in addition to</span>."},
+  {d:"g-ing", n:47, f:"We look forward to ___ from you at your earliest convenience.", a:"hearing", x:"<span class=\"en\">look forward to, be committed to, be dedicated to, be opposed to, object to, be accustomed to, in addition to, contribute to</span> → <span class=\"en\">-ing</span>. <span class=\"why\">Le piège nº 1 de la Part 5 : ce <span class=\"en\">to</span> n'annonce pas un infinitif.</span>"},
+  {d:"g-ing", n:48, f:"The consultant recommended ___ the launch until March.", a:"postponing", x:"<span class=\"en\">avoid, consider, suggest, recommend, enjoy, finish, mind, postpone, delay, quit, keep, involve, require</span> (au sens « impliquer »). <span class=\"why\">Deux verbes en <span class=\"en\">-ing</span> peuvent se suivre : <span class=\"en\">recommend postponing</span>.</span>"},
+  {d:"g-ing", n:49, f:"The supplier failed ___ the shipment on time.", a:"to deliver", x:"<span class=\"en\">decide, plan, agree, hope, offer, refuse, intend, fail, manage, promise, expect, seem, afford, arrange</span>."},
+  {d:"g-ing", n:50, f:"The new badge allows visitors ___ the building after hours.", a:"to enter", x:"<span class=\"en\">allow, require, expect, remind, encourage, advise, permit, urge, invite, ask, enable, persuade</span> + qqn + <span class=\"en\">to</span>. <span class=\"why\">La structure garde son <span class=\"en\">to</span> même au passif : <span class=\"en\">visitors are allowed to enter</span>.</span>"},
+  {d:"g-ing", n:51, f:"The manager had her assistant ___ the room before the meeting.", a:"book", x:"Après make, let et have, pas de « to » : <em>the manager had her assistant book the room</em>. <span class=\"why\"><span class=\"en\">to book</span> est faux ici. Mais au passif : <span class=\"en\">she was made to sign</span>.</span>"},
+  {d:"g-ing", n:52, f:"The new software helps us ___ inventory in real time.", a:"track", x:"Les deux formes sont acceptées, mais jamais <span class=\"en\">-ing</span>."},
+  {d:"g-ing", n:53, f:"The office closed early ___ allow staff to attend the ceremony.", a:"to", x:"Formes développées : <span class=\"en\">in order to, so as to</span>."},
+  {d:"g-ing", n:54, f:"Please confirm today ___ we can reserve your seat.", a:"so that", x:"<span class=\"en\">to</span> et <span class=\"en\">in order to</span> ne peuvent pas introduire un nouveau sujet."},
+  {d:"g-ing", n:55, f:"It is no use ___ the vendor before Monday.", a:"calling", x:"Ces expressions sont toujours suivies du gérondif."},
+  {d:"g-ing", n:56, f:"Remember ___ the attachment before you send the email.", a:"to include", x:"<span class=\"en\">stop working</span> = arrêter de travailler. <span class=\"en\">stop to work</span> = s'arrêter pour travailler. Idem <span class=\"en\">remember, forget, try</span>. <span class=\"why\"><span class=\"en\">remember including</span> voudrait dire « se souvenir de l'avoir mis ».</span>"},
+  {d:"g-ing", n:57, f:"___ new employees takes about three weeks.", a:"Training", x:"Le gérondif peut être sujet de la phrase. <span class=\"why\"><span class=\"en\">To train</span> est possible mais rare ; le TOEIC préfère le gérondif en position sujet.</span>"},
+  {d:"g-ing", n:58, f:"We are pleased ___ the opening of our third location.", a:"to announce", x:"<span class=\"en\">be ready to, be eager to, be reluctant to, be likely to, be able to, be pleased to</span>."},
+  // ——— GRAMMAIRE · MODAUX ———
+  {d:"g-modaux", n:59, f:"Visitors ___ wear their badge at all times.", a:"must", x:"Mais la négation change tout : <span class=\"en\">mustn't</span> = interdiction, <span class=\"en\">don't have to</span> = pas obligatoire."},
+  {d:"g-modaux", n:60, f:"Applicants ___ submit their résumé in PDF format.", a:"should", x:"Elles expriment une recommandation, pas un ordre."},
+  {d:"g-modaux", n:61, f:"Delivery ___ be delayed due to weather conditions.", a:"may", x:"<span class=\"en\">may</span> sert aussi à autoriser : <span class=\"en\">You may leave early.</span>"},
+  {d:"g-modaux", n:62, f:"After the upgrade, we ___ to process twice as many orders.", a:"will be able", x:"« can » n'a ni infinitif ni futur : on passe par « be able to »."},
+  {d:"g-modaux", n:63, f:"The technician ___ to arrive before noon.", a:"is supposed", x:"Elles décrivent ce qui est prévu ou attendu."},
+  {d:"g-modaux", n:64, f:"We had better ___ the client before the deadline.", a:"notify", x:"Les deux sont suivis de la base verbale. <span class=\"why\"><span class=\"en\">had better to notify</span> est faux.</span>"},
+  {d:"g-modaux", n:65, f:"The parcel isn't here — it ___ been sent to the wrong address.", a:"must have", x:"<span class=\"en\">should have</span> + participe passé = reproche ; <span class=\"en\">could have</span> = c'était possible."},
+  {d:"g-modaux", n:66, f:"Employees ___ complete the training before June.", a:"will have to", x:"Passe par une forme équivalente : <span class=\"en\">will be able to, will have to</span>. <span class=\"why\"><span class=\"en\">will must</span> n'existe pas.</span>"},
+  {d:"g-modaux", n:67, f:"The printer needs ___ before the audit.", a:"to be serviced", x:"<span class=\"en\">need to be repaired</span> (passif) ou <span class=\"en\">need repairing</span> (gérondif) — même sens."},
+  // ——— GRAMMAIRE · PRÉPOSITIONS ———
+  {d:"g-prep", n:68, f:"The board meets ___ the last Friday of every month.", a:"on", x:"<span class=\"en\">in</span> + mois, année, saison · <span class=\"en\">on</span> + jour, date · <span class=\"en\">at</span> + heure."},
+  {d:"g-prep", n:69, f:"Our new showroom is ___ the third floor.", a:"on", x:"<span class=\"en\">in</span> + espace fermé, ville · <span class=\"en\">on</span> + surface, étage, rue · <span class=\"en\">at</span> + point précis, adresse."},
+  {d:"g-prep", n:70, f:"Please return the signed contract ___ Thursday.", a:"by", x:"<span class=\"en\">by</span> vise une échéance ponctuelle, <span class=\"en\">until</span> une durée qui s'arrête. <span class=\"why\"><span class=\"en\">until Thursday</span> voudrait dire « continue de le rendre jusqu'à jeudi ». Question quasi garantie à chaque examen.</span>"},
+  {d:"g-prep", n:71, f:"The office will be closed ___ the renovation.", a:"during", x:"for + durée chiffrée, during + période nommée, while + proposition complète. <span class=\"why\"><span class=\"en\">for</span> exigerait un chiffre (<span class=\"en\">for two weeks</span>), <span class=\"en\">while</span> une proposition complète.</span>"},
+  {d:"g-prep", n:72, f:"You will receive a confirmation ___ 24 hours.", a:"within", x:"« within » = dans un délai maximum."},
+  {d:"g-prep", n:73, f:"The new pricing takes effect ___ January 1.", a:"as of", x:"« as of » = à compter de ; « no later than » = au plus tard."},
+  {d:"g-prep", n:74, f:"___ the interview, candidates must complete a short test.", a:"Prior to", x:"Registre formel, très présent dans les annonces et les mémos de la Part 6."},
+  {d:"g-prep", n:75, f:"Sales remained stable ___ the year.", a:"throughout", x:"« throughout » = tout au long de."},
+  {d:"g-prep", n:76, f:"The survey will run ___ May 3 to May 17.", a:"from", x:"Les paires ne se mélangent pas : jamais <span class=\"en\">between … to</span>."},
+  {d:"g-prep", n:77, f:"All departments must comply ___ the new security policy.", a:"with", x:"<span class=\"en\">depend on, apply for, comply with, consist of, result in, account for, subscribe to, specialize in, participate in, contribute to, refrain from, deal with, cope with, insist on, rely on</span>."},
+  {d:"g-prep", n:78, f:"Part-time staff are now eligible ___ the bonus plan.", a:"for", x:"<span class=\"en\">responsible for, capable of, eligible for, familiar with, aware of, subject to, similar to, interested in, satisfied with, committed to, comparable to, consistent with</span>."},
+  {d:"g-prep", n:79, f:"There has been a sharp increase ___ shipping costs.", a:"in", x:"<span class=\"en\">an increase in, a demand for, access to, a solution to, the reason for, an effect on, a delay in, an interest in, a decline in</span>. <span class=\"why\"><span class=\"en\">increase of</span> s'emploie pour le montant : <span class=\"en\">an increase of 5%</span>.</span>"},
+  {d:"g-prep", n:80, f:"I am writing ___ behalf of our regional director.", a:"on", x:"<span class=\"en\">on behalf of, in charge of, in accordance with, in compliance with, with regard to, in the event of, in addition to, regardless of, due to, on a regular basis, in a timely manner</span>."},
+  {d:"g-prep", n:81, f:"Over 200 delegates ___ the annual convention.", a:"attended", x:"<span class=\"en\">discuss, attend, contact, mention, enter, reach, approach, answer, join</span> se construisent avec un complément direct. <span class=\"why\">Ni <span class=\"en\">attended to</span> ni <span class=\"en\">attended at</span>. Même logique : <span class=\"en\">discuss the budget, contact us, reach an agreement</span>.</span>"},
+  // ——— GRAMMAIRE · DÉTERMINANTS ———
+  {d:"g-det", n:82, f:"The interview lasted ___ hour and a half.", a:"an", x:"<span class=\"en\">an hour, an MBA, an honest answer</span> · <span class=\"en\">a university, a European client, a one-year contract</span>."},
+  {d:"g-det", n:83, f:"We interviewed three candidates; ___ second one was the strongest.", a:"the", x:"« the » quand on sait de quel élément précis on parle."},
+  {d:"g-det", n:84, f:"All orders are confirmed ___ within one business day.", a:"by email", x:"<span class=\"en\">Customer satisfaction is our priority.</span> Ni devant les noms de sociétés, les repas, ni dans les expressions figées de moyen. <span class=\"why\"><span class=\"en\">by an email</span> et <span class=\"en\">by the email</span> sont faux : <span class=\"en\">by email, by phone, by car, at work, in charge</span> ne prennent pas d'article.</span>"},
+  {d:"g-det", n:85, f:"This is ___ most cost-effective option available.", a:"the", x:"Ces trois structures prennent toujours « the »."},
+  {d:"g-det", n:86, f:"If this model is unavailable, we can offer ___ one.", a:"another", x:"« another » ne prend jamais de -s et ne précède jamais un pluriel. <span class=\"why\"><span class=\"en\">another</span> ne prend jamais de <span class=\"en\">-s</span> et ne se met jamais devant un pluriel.</span>"},
+  {d:"g-det", n:87, f:"The company will announce ___ quarterly results on Tuesday.", a:"its", x:"<span class=\"en\">its</span> = son/sa · <span class=\"en\">it's</span> = it is. <span class=\"en\">whose</span> = dont · <span class=\"en\">who's</span> = who is."},
+  {d:"g-det", n:88, f:"___ employee must sign the confidentiality agreement.", a:"Every", x:"<span class=\"en\">every employee</span> (singulier) · <span class=\"en\">all employees</span> (pluriel) · <span class=\"en\">each of the employees</span>."},
+  {d:"g-det", n:89, f:"Please attach ___ copy of your diploma.", a:"a", x:"Il lui faut un déterminant : <span class=\"en\">a, the, this, our, one</span>."},
+  // ——— GRAMMAIRE · QUANTITÉ & COMPARAISON ———
+  {d:"g-quant", n:90, f:"We did not receive ___ feedback on the proposal.", a:"much", x:"« many » devant un dénombrable, « much » devant un indénombrable."},
+  {d:"g-quant", n:91, f:"___ candidates met all the requirements, so we reopened the position.", a:"Few", x:"Sans <span class=\"en\">a</span>, le sens devient négatif."},
+  {d:"g-quant", n:92, f:"The new process requires ___ paperwork.", a:"less", x:"« fewer » + dénombrable, « less » + indénombrable."},
+  {d:"g-quant", n:93, f:"___ of the participants arrived before nine.", a:"Most", x:"« almost » est un adverbe : il ne peut pas précéder un nom seul. <span class=\"why\"><span class=\"en\">Almost of the participants</span> est faux : <span class=\"en\">almost</span> est un adverbe, pas un quantifieur.</span>"},
+  {d:"g-quant", n:94, f:"This supplier is ___ reliable than the previous one.", a:"more", x:"-er pour les mots courts, « more » pour les longs, puis « than »."},
+  {d:"g-quant", n:95, f:"The new model is ___ efficient as the previous version.", a:"as", x:"À la forme négative : <span class=\"en\">not as … as</span>. Multiples : <span class=\"en\">twice as many, three times as expensive</span>."},
+  {d:"g-quant", n:96, f:"Warehouse B recorded ___ highest number of incidents.", a:"the", x:"L'article « the » est obligatoire devant un superlatif."},
+  {d:"g-quant", n:97, f:"Response times are ___ faster since the upgrade.", a:"significantly", x:"Jamais <span class=\"en\">very</span> devant un comparatif. <span class=\"why\"><span class=\"en\">very faster</span> est impossible.</span>"},
+  {d:"g-quant", n:98, f:"___ earlier you register, the lower the fee.", a:"The", x:"Deux variations liées : « the » + comparatif, deux fois."},
+  {d:"g-quant", n:99, f:"Our costs are lower ___ the industry average.", a:"than", x:"« than » sert à comparer, « then » veut dire ensuite."},
+  {d:"g-quant", n:100, f:"Sales were ___ than expected in the third quarter.", a:"worse", x:"<span class=\"en\">good → better → best</span> · <span class=\"en\">bad → worse → worst</span> · <span class=\"en\">far → further</span> · <span class=\"en\">little → less</span>."},
+  {d:"g-quant", n:101, f:"Our production costs are lower than ___ of our competitors.", a:"those", x:"Le TOEIC vérifie le parallélisme : <span class=\"en\">that of / those of</span>."},
+  // ——— GRAMMAIRE · RELATIFS ———
+  {d:"g-rel", n:102, f:"The technician ___ installed the system will return next week.", a:"who", x:"« who » pour les personnes, « which » pour les choses, « that » pour les deux."},
+  {d:"g-rel", n:103, f:"We are looking for a supplier ___ prices remain stable.", a:"whose", x:"Toujours suivi directement d'un nom, sans article."},
+  {d:"g-rel", n:104, f:"The conference room ___ we usually meet is being repainted.", a:"where", x:"« where » pour un lieu, « when » pour un moment. <span class=\"why\"><span class=\"en\">which</span> exigerait une préposition : <span class=\"en\">the room in which we meet</span>.</span>"},
+  {d:"g-rel", n:105, f:"All staff ___ in the pilot program will receive training.", a:"participating", x:"<span class=\"en\">the employees who work here → the employees working here</span> · <span class=\"en\">the report which was submitted → the report submitted</span>."},
+  {d:"g-rel", n:106, f:"Please review the terms ___ which the discount applies.", a:"to", x:"Registre formel : préposition + « which »."},
+  {d:"g-rel", n:107, f:"Our head office, ___ opened in 2015, will be renovated.", a:"which", x:"Une relative entre virgules (information supplémentaire) prend <span class=\"en\">which</span> ou <span class=\"en\">who</span>."},
+  {d:"g-rel", n:108, f:"Please tell us ___ you need before Friday.", a:"what", x:"<span class=\"en\">what</span> = ce que / ce qui, sans antécédent. <span class=\"en\">which</span> reprend un nom déjà cité."},
+  {d:"g-rel", n:109, f:"The candidate ___ we interviewed yesterday accepted the offer.", a:"whom", x:"<span class=\"en\">the file (which) I sent</span> : s'il est suivi d'un sujet + verbe, il est facultatif. Sujet, il est obligatoire. <span class=\"why\"><span class=\"en\">whom</span> ou <span class=\"en\">who</span> ou rien du tout : trois réponses possibles à l'oral, mais le TOEIC attend <span class=\"en\">whom</span> après une préposition.</span>"},
+  {d:"g-rel", n:110, f:"___ who registered early will receive a discount.", a:"Those", x:"« those who » = ceux qui."},
+  // ——— GRAMMAIRE · PRONOMS ———
+  {d:"g-pron", n:111, f:"The director asked my colleague and ___ to prepare the report.", a:"me", x:"<span class=\"en\">I/me, he/him, she/her, we/us, they/them</span>. Après un verbe ou une préposition → forme complément. <span class=\"why\"><span class=\"en\">and I</span> sonne plus poli mais c'est faux : le groupe est complément de <span class=\"en\">asked</span>.</span>"},
+  {d:"g-pron", n:112, f:"This badge is not mine — it must be ___.", a:"yours", x:"<span class=\"en\">my/mine, your/yours, our/ours, their/theirs</span>."},
+  {d:"g-pron", n:113, f:"The team organized the entire event ___.", a:"themselves", x:"<span class=\"en\">by yourself</span> = tout seul."},
+  {d:"g-pron", n:114, f:"The blue folders are full; use the empty ___.", a:"ones", x:"« one / ones » évite de répéter le nom."},
+  {d:"g-pron", n:115, f:"___ is essential to confirm your attendance.", a:"It", x:"<span class=\"en\">It is important that…</span>, <span class=\"en\">It takes two days to…</span>"},
+  {d:"g-pron", n:116, f:"Each department must submit ___ own budget proposal.", a:"its", x:"En Part 6, il assure la cohérence du texte : repère de qui on parle dans la phrase précédente. <span class=\"why\"><span class=\"en\">their</span> est tentant, mais <span class=\"en\">each department</span> est singulier.</span>"},
+  {d:"g-pron", n:117, f:"Two proposals were accepted; ___ were rejected.", a:"the others", x:"« the others » désigne tous ceux qui restent."},
+  // ——— GRAMMAIRE · MOTS DE LIAISON ———
+  {d:"g-conn", n:118, f:"___ the deadline was tight, the team finished on time.", a:"Although", x:"Ces trois mots introduisent une proposition complète (sujet + verbe)."},
+  {d:"g-conn", n:119, f:"___ the tight deadline, the team finished on time.", a:"Despite", x:"Même sens que <span class=\"en\">although</span>, mais jamais suivi d'une phrase conjuguée. <span class=\"why\"><span class=\"en\">Despite the deadline was tight</span> est la faute que le TOEIC te tend une fois sur deux. Test : si un verbe conjugué suit, il faut <span class=\"en\">although</span>.</span>"},
+  {d:"g-conn", n:120, f:"The design was approved. ___, the budget was not.", a:"However", x:"<span class=\"en\">however</span> se détache par une virgule et relie deux phrases ponctuées."},
+  {d:"g-conn", n:121, f:"The flight was cancelled ___ severe weather.", a:"due to", x:"« because » + phrase complète, « because of / due to » + groupe nominal."},
+  {d:"g-conn", n:122, f:"Demand exceeded our forecast; ___, we increased production.", a:"therefore", x:"Ils annoncent la conséquence de ce qui précède."},
+  {d:"g-conn", n:123, f:"The response was ___ positive that we extended the offer.", a:"so", x:"« so » + adjectif + that ; « such a » + nom + that."},
+  {d:"g-conn", n:124, f:"The room includes Wi-Fi. ___, breakfast is provided.", a:"Moreover", x:"<span class=\"en\">in addition to</span> + nom ou <span class=\"en\">-ing</span> ; <span class=\"en\">in addition</span> seul, suivi d'une virgule."},
+  {d:"g-conn", n:125, f:"Sales rose in Asia, ___ they declined in Europe.", a:"whereas", x:"« whereas / while » opposent deux faits dans la même phrase."},
+  {d:"g-conn", n:126, f:"The warranty is void ___ the product is registered within 30 days.", a:"unless", x:"« unless » = si… ne… pas."},
+  {d:"g-conn", n:127, f:"You may reschedule ___ that you notify us 48 hours in advance.", a:"provided", x:"Elles introduisent une condition à remplir."},
+  {d:"g-conn", n:128, f:"Bring a printed copy ___ the projector fails.", a:"in case", x:"« in case » = au cas où ; « otherwise » = sinon."},
+  {d:"g-conn", n:129, f:"The results were modest; ___, the project will continue.", a:"nevertheless", x:"Ils nuancent ou opposent ce qui vient d'être dit."},
+  {d:"g-conn", n:130, f:"The role requires not only technical skills ___ also strong communication.", a:"but", x:"Les deux membres doivent avoir la <b>même construction</b> — c'est le parallélisme, et le TOEIC le vérifie."},
+  {d:"g-conn", n:131, f:"The badge grants access to ___ the lab and the archive.", a:"both", x:"« both … and » relie deux éléments de même nature."},
+  {d:"g-conn", n:132, f:"The policy applies to all staff ___ of seniority.", a:"regardless", x:"« regardless of » = quel que soit, sans tenir compte de."},
+  {d:"g-conn", n:133, f:"Registration closed on Monday. ___, a few seats remain available.", a:"Nevertheless", x:"Lis la phrase d'avant et celle d'après, décide de la relation logique, <b>puis</b> regarde les propositions. <span class=\"why\">Le contexte dit « fermé » puis « il reste des places » : c'est un contraste, pas une conséquence.</span>"},
+  // ——— GRAMMAIRE · CONDITIONNEL ———
+  {d:"g-cond", n:134, f:"If the order exceeds €500, shipping ___ free.", a:"will be", x:"Condition réelle et possible. <span class=\"why\">Jamais <span class=\"en\">if … will</span> dans la subordonnée.</span>"},
+  {d:"g-cond", n:135, f:"If we had more staff, we ___ the deadline.", a:"would meet", x:"Situation imaginaire au présent."},
+  {d:"g-cond", n:136, f:"If we had known about the delay, we ___ the client.", a:"would have notified", x:"Regret sur le passé."},
+  {d:"g-cond", n:137, f:"___ you need further assistance, please contact our support team.", a:"Should", x:"On supprime <span class=\"en\">if</span> et on inverse. Très fréquent en fin de lettre commerciale."},
+  {d:"g-cond", n:138, f:"I wish we ___ more time to review the contract.", a:"had", x:"« wish » + prétérit = regret présent ; + past perfect = regret passé."},
+  {d:"g-cond", n:139, f:"The auditor recommended that the company ___ its records monthly.", a:"review", x:"<span class=\"en\">that</span> + sujet + <b>base verbale</b>, sans <span class=\"en\">-s</span> et sans <span class=\"en\">to</span>. <span class=\"why\"><span class=\"en\">reviews</span> est la réponse piège : le subjonctif ne s'accorde pas.</span>"},
+  {d:"g-cond", n:140, f:"It is imperative that every visitor ___ escorted at all times.", a:"be", x:"Même subjonctif : base verbale, donc « be » et non « is ». <span class=\"why\"><span class=\"en\">is escorted</span> paraît naturel mais le TOEIC attend <span class=\"en\">be escorted</span>.</span>"},
+  {d:"g-cond", n:141, f:"He talks about the merger as if it ___ already final.", a:"were", x:"« as if » + prétérit pour une situation irréelle."},
+  // ——— GRAMMAIRE · ORDRE DES MOTS ———
+  {d:"g-ordre", n:142, f:"Our suppliers ___ deliver ahead of schedule.", a:"rarely", x:"<span class=\"en\">always, usually, often, rarely, never</span>. Avec un auxiliaire, il se glisse entre les deux : <span class=\"en\">has never been</span>."},
+  {d:"g-ordre", n:143, f:"The signed contract has not arrived ___.", a:"yet", x:"<span class=\"en\">already</span> avant le verbe · <span class=\"en\">still</span> avant le verbe · <span class=\"en\">yet</span> en fin de phrase négative ou interrogative."},
+  {d:"g-ordre", n:144, f:"The room is not large ___ for 50 people.", a:"enough", x:"« enough » se place APRÈS l'adjectif mais AVANT le nom. <span class=\"why\"><span class=\"en\">enough large</span> est faux, mais <span class=\"en\">enough space</span> est correct.</span>"},
+  {d:"g-ordre", n:145, f:"The discount applies ___ to online orders.", a:"only", x:"« only » se place juste devant le mot qu'il limite."},
+  {d:"g-ordre", n:146, f:"Could you tell me what time the meeting ___?", a:"starts", x:"Après <span class=\"en\">I wonder, could you tell me, do you know</span>, on garde l'ordre sujet + verbe. <span class=\"why\"><span class=\"en\">does the meeting start</span> ne s'emploie qu'en question directe.</span>"},
+  {d:"g-ordre", n:147, f:"Our competitors use recycled packaging, and ___ do we.", a:"so", x:"« so do I » (moi aussi) et « neither do I » (moi non plus) : auxiliaire puis sujet."},
+  {d:"g-ordre", n:148, f:"Not only ___ the report late, but it was also incomplete.", a:"was", x:"<span class=\"en\">Never, Rarely, Not only, Under no circumstances</span> + auxiliaire + sujet."},
+  {d:"g-ordre", n:149, f:"They installed two ___ machines last month.", a:"large new German", x:"Ordre des adjectifs : opinion, taille, âge, couleur, origine, matière."},
+  // ——— GRAMMAIRE · MOTS CONFONDUS ———
+  {d:"g-confus", n:150, f:"The company plans to ___ prices by 3% next year.", a:"raise", x:"<span class=\"en\">rise, rose, risen</span> sans complément · <span class=\"en\">raise, raised, raised</span> avec complément. <span class=\"why\"><span class=\"en\">Prices rose</span> (elles montent) mais <span class=\"en\">the company raised prices</span> (elle les augmente).</span>"},
+  {d:"g-confus", n:151, f:"The strike will ___ deliveries in the northern region.", a:"affect", x:"« affect » est le verbe, « effect » le nom."},
+  {d:"g-confus", n:152, f:"Please ___ that all forms are signed before submission.", a:"ensure", x:"ensure = garantir · insure = assurer (assurance) · assure = rassurer quelqu'un."},
+  {d:"g-confus", n:153, f:"Do not ___ your boarding pass.", a:"lose", x:"« lose » = perdre ; « loose » = ample, desserré."},
+  {d:"g-confus", n:154, f:"Our consultant will ___ you on the best option.", a:"advise", x:"« advice » est le nom, « advise » le verbe."},
+  {d:"g-confus", n:155, f:"This model is more ___ to run than the previous one.", a:"economical", x:"« economic » = de l'économie ; « economical » = peu coûteux."},
+  {d:"g-confus", n:156, f:"___ the base salary, the package includes a bonus.", a:"Besides", x:"« beside » = à côté de ; « besides » = en plus de."},
+  {d:"g-confus", n:157, f:"The two branches reported gains of 4% and 7%, ___.", a:"respectively", x:"respective = respectif · respectful = respectueux · respectively = dans l'ordre cité."},
+  {d:"g-confus", n:158, f:"The new module ___ our existing software.", a:"complements", x:"« complement » = compléter ; « compliment » = féliciter."},
+  {d:"g-confus", n:159, f:"We tested two vendors; the ___ offered faster delivery.", a:"latter", x:"« former » = le premier cité ; « latter » = le dernier cité."},
+  {d:"g-confus", n:160, f:"Our ___ concern is customer safety.", a:"principal", x:"« principal » = principal, directeur ; « principle » = principe."},
+  {d:"g-confus", n:161, f:"Please suggest an ___ date for the meeting.", a:"alternative", x:"« alternate » = en alternance ; « alternative » = de remplacement."},
+  // ——— GRAMMAIRE · EXPRESSIONS FIGÉES ———
+  {d:"g-figees", n:162, f:"Please confirm your attendance ___ your earliest convenience.", a:"at", x:"« dès que possible » — formule polie de fin de courrier."},
+  {d:"g-figees", n:163, f:"Applications must be received ___ later than March 15.", a:"no", x:"« au plus tard le » — marque une date limite."},
+  {d:"g-figees", n:164, f:"Payment is due ___ receipt of the invoice.", a:"upon", x:"« upon » = dès, au moment de : dès réception, dès l'arrivée."},
+  {d:"g-figees", n:165, f:"All refunds are processed ___ accordance with our return policy.", a:"in", x:"« conformément à »."},
+  {d:"g-figees", n:166, f:"Prices are ___ to change without notice.", a:"subject", x:"« sous réserve de modification »."},
+  {d:"g-figees", n:167, f:"___ the event of a power failure, use the stairwell.", a:"In", x:"« en cas de » + nom ; « au cas où » + proposition."},
+  {d:"g-figees", n:168, f:"I am writing ___ behalf of the finance department.", a:"on", x:"« au nom de »."},
+  {d:"g-figees", n:169, f:"I am contacting you ___ regard to your recent order.", a:"with", x:"« concernant, au sujet de »."},
+  {d:"g-figees", n:170, f:"All requests are handled in a ___ manner.", a:"timely", x:"« dans les délais »."},
+  {d:"g-figees", n:171, f:"Installation is provided ___ of charge.", a:"free", x:"« gratuitement, sans frais supplémentaires »."},
+  {d:"g-figees", n:172, f:"Ms. Alvarez is ___ charge of the new distribution center.", a:"in", x:"« être responsable de »."},
+  {d:"g-figees", n:173, f:"Equipment is inspected on a regular ___.", a:"basis", x:"« régulièrement »."},
+  {d:"g-figees", n:174, f:"The renovation was completed two weeks ___ of schedule.", a:"ahead", x:"comme prévu · en avance · en retard."},
+  {d:"g-figees", n:175, f:"Your card will arrive next week; ___ the meantime, use the temporary code.", a:"in", x:"« en attendant »."},
+];
+
+// ——— Répétition espacée (boîtes de Leitner) ———
+const KEY = "toeic-flashcards-v1";
+const IVL_DAYS = [0, 1, 3, 7, 15, 30];
+const DAY = 24 * 60 * 60 * 1000;
+const NEW_PER_SESSION = 20;
+
+function cardId(c) {
+  let h = 0;
+  const s = c.d + "|" + c.f;
+  for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; }
+  return "c" + (h >>> 0).toString(36);
+}
+function loadState() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } }
+function saveState() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+let state = loadState();
+let deckFilter = localStorage.getItem(KEY + "-deck") || "all";
+// famFilter n'existait pas avant : on le déduit du paquet déjà mémorisé.
+let famFilter = localStorage.getItem(KEY + "-fam") || familyOf(deckFilter);
+if (!FAMILIES[famFilter]) famFilter = "all";
+if (deckFilter !== "all" && !DECKS[deckFilter]) deckFilter = "all";
+let queue = [];
+let sessionTotal = 0;
+let flipped = false;
+
+const $ = id => document.getElementById(id);
+
+function saveFilters() {
+  localStorage.setItem(KEY + "-deck", deckFilter);
+  localStorage.setItem(KEY + "-fam", famFilter);
+}
+
+function pool() {
+  return CARDS.filter(c => {
+    if (famFilter !== "all" && !FAMILIES[famFilter].decks.includes(c.d)) return false;
+    return deckFilter === "all" || c.d === deckFilter;
+  });
+}
+
+function buildQueue() {
+  const now = Date.now();
+  const due = [], fresh = [];
+  for (const c of pool()) {
+    const st = state[cardId(c)];
+    if (!st) fresh.push(c);
+    else if (st.due <= now) due.push(c);
+  }
+  due.sort((a, b) => state[cardId(a)].due - state[cardId(b)].due);
+  // mélange léger des nouvelles pour varier les thèmes
+  for (let i = fresh.length - 1; i > 0; i--) { const j = (i * 7919 + 13) % (i + 1); [fresh[i], fresh[j]] = [fresh[j], fresh[i]]; }
+  queue = due.concat(fresh.slice(0, NEW_PER_SESSION));
+  sessionTotal = queue.length;
+}
+
+function rate(grade) {
+  const c = queue.shift();
+  const id = cardId(c);
+  const cur = state[id] || { box: 0, due: 0 };
+  if (grade === "again") {
+    state[id] = { box: 0, due: Date.now() + 10 * 60 * 1000 };
+    queue.splice(Math.min(5, queue.length), 0, c); // la carte revient dans la session
+    sessionTotal++;
+  } else if (grade === "hard") {
+    state[id] = { box: Math.max(1, cur.box), due: Date.now() + DAY };
+  } else {
+    const box = Math.min(cur.box + 1, IVL_DAYS.length - 1);
+    state[id] = { box, due: Date.now() + IVL_DAYS[box] * DAY };
+  }
+  saveState();
+  flipped = false;
+  render();
+}
+
+function nextGoodInterval() {
+  const c = queue[0];
+  if (!c) return "";
+  const cur = state[cardId(c)] || { box: 0 };
+  const d = IVL_DAYS[Math.min(cur.box + 1, IVL_DAYS.length - 1)];
+  return d === 1 ? "demain" : d + " jours";
+}
+
+function renderChips() {
+  const mk = (el, label, on, onclick) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (on ? " on" : "");
+    b.textContent = label;
+    // renderChips() se rappelle lui-même : sans ça la sélection ne se surligne pas
+    // et la 2e rangée ne suit pas la famille choisie.
+    b.onclick = () => { onclick(); saveFilters(); flipped = false; renderChips(); buildQueue(); render(); };
+    el.appendChild(b);
+  };
+
+  // 1re rangée : Tout · Vocabulaire · Grammaire
+  const top = $("chips");
+  top.innerHTML = "";
+  mk(top, "Tout", famFilter === "all", () => { famFilter = "all"; deckFilter = "all"; });
+  for (const [f, v] of Object.entries(FAMILIES)) {
+    mk(top, v.label, famFilter === f, () => { famFilter = f; deckFilter = "all"; });
+  }
+
+  // 2e rangée : les sections de la famille choisie
+  const sub = $("chipsSub");
+  sub.classList.toggle("hidden", famFilter === "all");
+  sub.innerHTML = "";
+  if (famFilter === "all") return;
+  mk(sub, "Tout " + FAMILIES[famFilter].label.toLowerCase(), deckFilter === "all", () => { deckFilter = "all"; });
+  for (const k of FAMILIES[famFilter].decks) {
+    mk(sub, DECKS[k], deckFilter === k, () => { deckFilter = k; });
+  }
+}
+
+function renderStats() {
+  const p = pool();
+  const now = Date.now();
+  let due = 0, learned = 0;
+  for (const c of p) {
+    const st = state[cardId(c)];
+    if (!st || st.due <= now) due++;
+    if (st && st.box >= 4) learned++;
+  }
+  $("stats").textContent = due + " à réviser · " + learned + " acquises · " + p.length + " cartes";
+}
+
+function render() {
+  renderStats();
+  const done = queue.length === 0;
+  $("card").classList.toggle("hidden", done);
+  $("hint").classList.toggle("hidden", done || flipped);
+  $("actions").classList.toggle("hidden", done || !flipped);
+  $("done").classList.toggle("hidden", !done);
+  const doneCount = sessionTotal - queue.length;
+  $("bar").style.width = (sessionTotal ? (doneCount / sessionTotal) * 100 : 0) + "%";
+
+  if (done) {
+    const remainingNew = pool().filter(c => !state[cardId(c)]).length;
+    if (remainingNew > 0) {
+      $("doneTitle").textContent = "Session terminée ✓";
+      $("doneText").textContent = "Bien joué ! Il reste " + remainingNew + " nouvelles cartes dans ce paquet.";
+      $("doneBtn").textContent = "Continuer (+" + Math.min(NEW_PER_SESSION, remainingNew) + " cartes)";
+      $("doneBtn").onclick = () => { buildQueue(); render(); };
+    } else {
+      $("doneTitle").textContent = "Tout est révisé 🎉";
+      $("doneText").textContent = "Reviens plus tard : les cartes reviendront d'elles-mêmes au bon moment. C'est la répétition espacée qui fait mémoriser.";
+      $("doneBtn").textContent = "Revoir quand même 20 cartes";
+      $("doneBtn").onclick = () => {
+        const p = pool();
+        for (let i = p.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
+        queue = p.slice(0, 20); sessionTotal = queue.length; flipped = false; render();
+      };
+    }
+    return;
+  }
+
+  const c = queue[0];
+  $("deckTag").textContent = DECKS[c.d];
+  const face = $("face");
+  const frontHtml = c.f.replace(/___/g, '<span class="gap">&nbsp;?&nbsp;</span>');
+  if (!flipped) {
+    face.innerHTML = '<div class="prompt">' + frontHtml + "</div>";
+  } else {
+    face.innerHTML = '<div class="answer">' + c.a + '</div><div class="extra">' + c.x + "</div>" +
+      (c.n ? '<div class="ref">Règle ' + c.n + " · fiche 2</div>" : "");
+  }
+  $("goodIvl").textContent = nextGoodInterval();
+}
+
+$("card").addEventListener("click", () => { if (!flipped) { flipped = true; render(); } });
+$("card").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && !flipped) { e.preventDefault(); flipped = true; render(); } });
+$("bAgain").onclick = () => rate("again");
+$("bHard").onclick = () => rate("hard");
+$("bGood").onclick = () => rate("good");
+
+renderChips();
+buildQueue();
+render();
+</script>
+<script>
+// Hors ligne : le service worker garde une copie de l'appli.
+if ("serviceWorker" in navigator) {
+  addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
