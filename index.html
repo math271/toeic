@@ -711,11 +711,19 @@ function nextGoodInterval() {
   return d === 1 ? "demain" : d + " jours";
 }
 
+// Nombre total de regles couvertes par le programme, calcule une fois.
+const TOTAL_REGLES = (() => {
+  const t = new Set();
+  for (const e of PROGRAMME) for (const [a, b] of e.r) for (let n = a; n <= b; n++) t.add(n);
+  return t.size;
+})();
+
 function renderProg() {
   const row = $("progRow");
   const { vues, derniere } = etapeProgramme();
-  const totalGram = CARDS.filter(c => c.n).length;
-  const ouvertes = CARDS.filter(c => c.n && vues.has(c.n)).length;
+  // Une regle peut porter plusieurs cartes : on affiche les deux chiffres,
+  // sans quoi le compte de cartes se lit a tort comme un compte de regles.
+  const cartes = CARDS.filter(c => c.n && vues.has(c.n)).length;
   row.innerHTML = "";
 
   const b = document.createElement("button");
@@ -730,7 +738,7 @@ function renderProg() {
   const info = document.createElement("span");
   info.className = "proginfo";
   if (!derniere) info.textContent = "Le programme s'ouvre le 8 septembre.";
-  else if (progFilter) info.textContent = ouvertes + " règles sur " + totalGram + " — dernière étape : " + derniere.t + ". Le vocabulaire reste entier.";
+  else if (progFilter) info.textContent = vues.size + " règles ouvertes sur " + TOTAL_REGLES + " · " + cartes + " cartes — dernière étape : " + derniere.t + ". Le vocabulaire reste entier.";
   else info.textContent = "Toutes les règles, y compris celles qui ne sont pas encore au programme.";
   row.appendChild(info);
 }
