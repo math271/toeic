@@ -95,6 +95,17 @@
   .chips.sub { margin-top: -6px; }
   .chips.sub .chip { padding: 5px 11px; font-size: .76rem; }
   .chips.sub .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  /* Bascule « au programme » : ne montrer que les regles deja vues en cours */
+  .progrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .progtog {
+    display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
+    border: 1px solid var(--border); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: 7px 14px 7px 11px; font-family: inherit; font-size: .82rem; cursor: pointer;
+  }
+  .progtog .led { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+  .progtog.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .progtog.on .led { background: var(--accent); }
+  .proginfo { font-size: .74rem; color: var(--muted); line-height: 1.4; flex: 1 1 12rem; min-width: 0; }
 
   .progress { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
   .progress > div { height: 100%; background: var(--accent); border-radius: 2px; transition: width .25s ease; }
@@ -143,6 +154,7 @@
     <div class="stats" id="stats"></div>
   </header>
 
+  <div class="progrow" id="progRow"></div>
   <div class="chips" id="chips"></div>
   <div class="chips sub hidden" id="chipsSub"></div>
   <div class="progress"><div id="bar" style="width:0%"></div></div>
@@ -204,6 +216,41 @@ const FAMILIES = {
 };
 
 const familyOf = deck => Object.keys(FAMILIES).find(f => FAMILIES[f].decks.includes(deck)) || "all";
+
+// ——— Programme des 28 jours : ce qui est censé être connu à chaque date ———
+// Chaque étape ouvre des plages de règles de la fiche 2. Le déblocage est cumulatif
+// et se fait tout seul à la date dite : il n'y a rien à modifier au fil des jours.
+const PROGRAMME = [
+  { d: "2026-09-08", r: [[1, 24], [71, 71], [118, 119], [121, 121]], t: "nature du mot, accord, préposition vs conjonction" },
+  { d: "2026-09-09", r: [[25, 45], [134, 136]], t: "le verbe — temps, passif, conditionnels" },
+  { d: "2026-09-10", r: [[46, 58]], t: "gérondif et infinitif" },
+  { d: "2026-09-11", r: [[59, 81]], t: "modaux et prépositions" },
+  { d: "2026-09-14", r: [[82, 101]], t: "déterminants, quantité et comparaison" },
+  { d: "2026-09-15", r: [[102, 117]], t: "relatifs et pronoms" },
+  { d: "2026-09-16", r: [[118, 133]], t: "mots de liaison" },
+  { d: "2026-09-17", r: [[134, 141]], t: "conditionnel et subjonctif" },
+  { d: "2026-09-28", r: [[142, 161]], t: "ordre des mots et mots confondus" },
+  { d: "2026-09-30", r: [[162, 175]], t: "expressions figées" },
+  { d: "2026-10-01", r: [[176, 182]], t: "la méthode" }
+];
+
+function dateDuJour() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+// Numéros de règles ouverts à ce jour + intitulé de la dernière étape franchie.
+function etapeProgramme() {
+  const auj = dateDuJour();
+  const vues = new Set();
+  let derniere = null;
+  for (const e of PROGRAMME) {
+    if (e.d > auj) break;
+    for (const [a, b] of e.r) for (let n = a; n <= b; n++) vues.add(n);
+    derniere = e;
+  }
+  return { vues, derniere };
+}
 
 // f: recto — a: réponse — x: règle ou exemple. Dans f, «___» devient un trou surligné.
 // n: numéro de la règle dans la fiche 2 (cartes de grammaire uniquement), affiché au verso.
@@ -578,6 +625,8 @@ function saveState() { localStorage.setItem(KEY, JSON.stringify(state)); }
 
 let state = loadState();
 let deckFilter = localStorage.getItem(KEY + "-deck") || "all";
+// « Au programme » est actif par défaut : on ne teste pas des règles pas encore vues.
+let progFilter = localStorage.getItem(KEY + "-prog") !== "0";
 // famFilter n'existait pas avant : on le déduit du paquet déjà mémorisé.
 let famFilter = localStorage.getItem(KEY + "-fam") || familyOf(deckFilter);
 if (!FAMILIES[famFilter]) famFilter = "all";
@@ -591,12 +640,18 @@ const $ = id => document.getElementById(id);
 function saveFilters() {
   localStorage.setItem(KEY + "-deck", deckFilter);
   localStorage.setItem(KEY + "-fam", famFilter);
+  localStorage.setItem(KEY + "-prog", progFilter ? "1" : "0");
 }
 
 function pool() {
+  const { vues } = etapeProgramme();
   return CARDS.filter(c => {
     if (famFilter !== "all" && !FAMILIES[famFilter].decks.includes(c.d)) return false;
-    return deckFilter === "all" || c.d === deckFilter;
+    if (deckFilter !== "all" && c.d !== deckFilter) return false;
+    // Filtre « au programme » : on écarte les règles pas encore travaillées en cours.
+    // Les cartes sans numéro de règle (tout le vocabulaire) restent toujours disponibles.
+    if (progFilter && vues.size && c.n && !vues.has(c.n)) return false;
+    return true;
   });
 }
 
@@ -642,7 +697,32 @@ function nextGoodInterval() {
   return d === 1 ? "demain" : d + " jours";
 }
 
+function renderProg() {
+  const row = $("progRow");
+  const { vues, derniere } = etapeProgramme();
+  const totalGram = CARDS.filter(c => c.n).length;
+  const ouvertes = CARDS.filter(c => c.n && vues.has(c.n)).length;
+  row.innerHTML = "";
+
+  const b = document.createElement("button");
+  b.className = "progtog" + (progFilter ? " on" : "");
+  const led = document.createElement("span");
+  led.className = "led";
+  b.appendChild(led);
+  b.appendChild(document.createTextNode(progFilter ? "Au programme" : "Tout le paquet"));
+  b.onclick = () => { progFilter = !progFilter; saveFilters(); flipped = false; renderChips(); buildQueue(); render(); };
+  row.appendChild(b);
+
+  const info = document.createElement("span");
+  info.className = "proginfo";
+  if (!derniere) info.textContent = "Le programme s'ouvre le 8 septembre.";
+  else if (progFilter) info.textContent = ouvertes + " règles sur " + totalGram + " — dernière étape : " + derniere.t + ". Le vocabulaire reste entier.";
+  else info.textContent = "Toutes les règles, y compris celles qui ne sont pas encore au programme.";
+  row.appendChild(info);
+}
+
 function renderChips() {
+  renderProg();
   const mk = (el, label, on, onclick) => {
     const b = document.createElement("button");
     b.className = "chip" + (on ? " on" : "");
