@@ -130,6 +130,9 @@
   .ref { font-size: .68rem; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); opacity: .8; }
   /* Les 4 propositions, comme au vrai Part 5 : sans elles on ne sait pas
      de quelle famille de mots la question parle. */
+  /* Rappel du format attendu sous la question, pour les paquets dont la
+     reponse a une structure propre (les 3 formes du verbe irregulier). */
+  .consigne { font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
   .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; max-width: 21rem; margin: 0 auto; width: 100%; }
   .opts span {
     background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
@@ -221,6 +224,9 @@ const FAMILIES = {
                                         "g-prep", "g-det", "g-quant", "g-rel", "g-pron", "g-conn",
                                         "g-cond", "g-ordre", "g-confus", "g-figees"] }
 };
+
+// Format de reponse attendu, rappele sous la question.
+const CONSIGNES = { irr: "base · prétérit · participe passé" };
 
 const familyOf = deck => Object.keys(FAMILIES).find(f => FAMILIES[f].decks.includes(deck)) || "all";
 
@@ -832,6 +838,7 @@ function render() {
   const frontHtml = c.f.replace(/___/g, '<span class="gap">&nbsp;?&nbsp;</span>');
   if (!flipped) {
     face.innerHTML = '<div class="prompt">' + frontHtml + "</div>" +
+      (CONSIGNES[c.d] ? '<div class="consigne">' + CONSIGNES[c.d] + "</div>" : "") +
       (c.o ? '<div class="opts">' + c.o.map(o => "<span>" + o + "</span>").join("") + "</div>" : "");
   } else {
     face.innerHTML = '<div class="answer">' + c.a + '</div><div class="extra">' + c.x + "</div>" +
