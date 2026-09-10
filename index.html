@@ -245,7 +245,8 @@ const PROGRAMME = [
   { d: "2026-09-11", r: [[59, 81]], t: "modaux et prépositions" },
   { d: "2026-09-14", r: [[82, 101]], t: "déterminants, quantité et comparaison" },
   { d: "2026-09-15", r: [[102, 117]], t: "relatifs et pronoms" },
-  { d: "2026-09-16", r: [[118, 133]], t: "mots de liaison" },
+  // Mécanisme conjonction / préposition / adverbe acquis le 10 (8/8 au drill) : bloc ouvert le jour même.
+  { d: "2026-09-10", r: [[118, 133]], t: "mots de liaison" },
   { d: "2026-09-17", r: [[134, 141]], t: "conditionnel et subjonctif" },
   { d: "2026-09-28", r: [[142, 161]], t: "ordre des mots et mots confondus" },
   { d: "2026-09-30", r: [[162, 175]], t: "expressions figées" },
@@ -763,6 +764,7 @@ const CARDS = [
   {d:"g-conn", n:131, f:"The badge grants access to ___ the lab and the archive.", a:"both", x:"« both … and » relie deux éléments de même nature."},
   {d:"g-conn", n:132, f:"The policy applies to all staff ___ of seniority.", a:"regardless", x:"« regardless of » = quel que soit, sans tenir compte de."},
   {d:"g-conn", n:133, f:"Registration closed on Monday. ___, a few seats remain available.", a:"Nevertheless", x:"Lis la phrase d'avant et celle d'après, décide de la relation logique, <b>puis</b> regarde les propositions. <span class=\"why\">Le contexte dit « fermé » puis « il reste des places » : c'est un contraste, pas une conséquence.</span>"},
+  {d:"g-conn", n:120, o:["Despite","Although","However","Because of"], f:"The deadline was tight. ___, the team finished on time.", a:"However", x:"Trois catégories, pas deux. <b>Conjonction</b> (<span class=\"en\">although, because, even if, while</span>) + sujet et verbe. <b>Préposition</b> (<span class=\"en\">despite, because of, due to, during</span>) + nom ou -ing. <b>Adverbe de liaison</b> (<span class=\"en\">however, nevertheless, therefore, moreover</span>) : il relie <b>deux phrases séparées</b>, après un point ou un point-virgule. <span class=\"why\">Ici la phrase précédente est terminée par un point : seul un adverbe peut suivre. <span class=\"en\">Although</span> et <span class=\"en\">Despite</span> exigeraient une seule et même phrase.</span>"},
   // ——— GRAMMAIRE · CONDITIONNEL ———
   {d:"g-cond", n:134, f:"If the order exceeds €500, shipping ___ free.", o:["is","will be","would be","will have been"], a:"will be", x:"Condition réelle et possible. <span class=\"why\">Jamais <span class=\"en\">if … will</span> dans la subordonnée.</span>"},
   {d:"g-cond", n:135, f:"If we had more staff, we ___ the deadline.", o:["met","will meet","would meet","would have met"], a:"would meet", x:"Situation imaginaire au présent."},
