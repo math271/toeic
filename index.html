@@ -243,15 +243,18 @@ const PROGRAMME = [
   // Leçon sur les temps faite dès le 8 septembre : le bloc « verbe » s'ouvre donc le jour même.
   { d: "2026-09-08", r: [[25, 45], [134, 136]], t: "le verbe — temps, passif, conditionnels" },
   { d: "2026-09-10", r: [[46, 58]], t: "gérondif et infinitif" },
-  { d: "2026-09-11", r: [[59, 81]], t: "modaux et prépositions" },
-  { d: "2026-09-14", r: [[82, 101]], t: "déterminants, quantité et comparaison" },
-  { d: "2026-09-15", r: [[102, 117]], t: "relatifs et pronoms" },
   // Mécanisme conjonction / préposition / adverbe acquis le 10 (8/8 au drill) : bloc ouvert le jour même.
   { d: "2026-09-10", r: [[118, 133]], t: "mots de liaison" },
+  { d: "2026-09-11", r: [[59, 81]], t: "modaux et prépositions" },
+  // Le lexique est le facteur limitant (Parts 5 et 6 à 57 %, Part 7 à 76 %) :
+  // les deux blocs lexicaux remontent du 28-30 septembre au 12 et au 14.
+  { d: "2026-09-12", r: [[162, 175]], t: "expressions figées du monde professionnel" },
+  { d: "2026-09-14", r: [[150, 161]], t: "les mots qu'on confond" },
+  { d: "2026-09-15", r: [[82, 101]], t: "déterminants, quantité et comparaison" },
+  { d: "2026-09-16", r: [[102, 117]], t: "relatifs et pronoms" },
   { d: "2026-09-17", r: [[134, 141]], t: "conditionnel et subjonctif" },
-  { d: "2026-09-28", r: [[142, 161]], t: "ordre des mots et mots confondus" },
-  { d: "2026-09-30", r: [[162, 175]], t: "expressions figées" },
-  { d: "2026-10-01", r: [[176, 182]], t: "la méthode" }
+  { d: "2026-09-18", r: [[142, 149]], t: "ordre des mots" },
+  { d: "2026-09-20", r: [[176, 182]], t: "la méthode" }
 ];
 
 function dateDuJour() {
@@ -264,10 +267,12 @@ function etapeProgramme() {
   const auj = dateDuJour();
   const vues = new Set();
   let derniere = null;
+  // On parcourt TOUT le tableau : une étape avancée à la main ne doit pas être
+  // sautée parce qu'elle se retrouve après une date postérieure dans la liste.
   for (const e of PROGRAMME) {
-    if (e.d > auj) break;
+    if (e.d > auj) continue;
     for (const [a, b] of e.r) for (let n = a; n <= b; n++) vues.add(n);
-    derniere = e;
+    if (!derniere || e.d >= derniere.d) derniere = e;
   }
   return { vues, derniere };
 }
@@ -728,33 +733,33 @@ const CARDS = [
   {d:"g-ing", n:57, f:"___ (train) new employees takes about three weeks.", a:"Training", x:"Le gérondif peut être sujet de la phrase. <span class=\"why\"><span class=\"en\">To train</span> est possible mais rare ; le TOEIC préfère le gérondif en position sujet.</span>"},
   {d:"g-ing", n:58, f:"We are pleased ___ (announce) the opening of our third location.", a:"to announce", x:"<span class=\"en\">be ready to, be eager to, be reluctant to, be likely to, be able to, be pleased to</span>."},
   // ——— GRAMMAIRE · MODAUX ———
-  {d:"g-modaux", n:59, f:"Visitors ___ wear their badge at all times.", a:"must", x:"Mais la négation change tout : <span class=\"en\">mustn't</span> = interdiction, <span class=\"en\">don't have to</span> = pas obligatoire."},
-  {d:"g-modaux", n:60, f:"Applicants ___ submit their résumé in PDF format.", a:"should", x:"Elles expriment une recommandation, pas un ordre."},
-  {d:"g-modaux", n:61, f:"Delivery ___ be delayed due to weather conditions.", a:"may", x:"<span class=\"en\">may</span> sert aussi à autoriser : <span class=\"en\">You may leave early.</span>"},
-  {d:"g-modaux", n:62, f:"After the upgrade, we ___ to process twice as many orders.", a:"will be able", x:"« can » n'a ni infinitif ni futur : on passe par « be able to »."},
-  {d:"g-modaux", n:63, f:"The technician ___ to arrive before noon.", a:"is supposed", x:"Elles décrivent ce qui est prévu ou attendu."},
+  {d:"g-modaux", n:59, f:"Visitors ___ wear their badge at all times.", o:["can","must","may","would"], a:"must", x:"Mais la négation change tout : <span class=\"en\">mustn't</span> = interdiction, <span class=\"en\">don't have to</span> = pas obligatoire."},
+  {d:"g-modaux", n:60, f:"Applicants ___ submit their résumé in PDF format.", o:["might","would","should","could"], a:"should", x:"Elles expriment une recommandation, pas un ordre."},
+  {d:"g-modaux", n:61, f:"Delivery ___ be delayed due to weather conditions.", o:["would rather","must have","had better","may"], a:"may", x:"<span class=\"en\">may</span> sert aussi à autoriser : <span class=\"en\">You may leave early.</span>"},
+  {d:"g-modaux", n:62, f:"After the upgrade, we ___ to process twice as many orders.", o:["will be able","will able","will can","can be able"], a:"will be able", x:"« can » n'a ni infinitif ni futur : on passe par « be able to »."},
+  {d:"g-modaux", n:63, f:"The technician ___ to arrive before noon.", o:["is able","is supposed","should be","must"], a:"is supposed", x:"Elles décrivent ce qui est prévu ou attendu."},
   {d:"g-modaux", n:63, f:"The shipment ___ (be supposed) to arrive on Friday, but it never came.", a:"was supposed", x:"<span class=\"en\">be supposed to</span> = ce qui était prévu, convenu. Omniprésent dans les mémos de la Part 6."},
-  {d:"g-modaux", n:64, f:"We had better ___ the client before the deadline.", a:"notify", x:"Les deux sont suivis de la base verbale. <span class=\"why\"><span class=\"en\">had better to notify</span> est faux.</span>"},
-  {d:"g-modaux", n:65, f:"The parcel isn't here — it ___ been sent to the wrong address.", a:"must have", x:"<span class=\"en\">should have</span> + participe passé = reproche ; <span class=\"en\">could have</span> = c'était possible."},
-  {d:"g-modaux", n:66, f:"Employees ___ complete the training before June.", a:"will have to", x:"Passe par une forme équivalente : <span class=\"en\">will be able to, will have to</span>. <span class=\"why\"><span class=\"en\">will must</span> n'existe pas.</span>"},
-  {d:"g-modaux", n:67, f:"The printer needs ___ before the audit.", a:"to be serviced", x:"<span class=\"en\">need to be repaired</span> (passif) ou <span class=\"en\">need repairing</span> (gérondif) — même sens."},
+  {d:"g-modaux", n:64, f:"We had better ___ the client before the deadline.", o:["notifying","notified","notify","to notify"], a:"notify", x:"Les deux sont suivis de la base verbale. <span class=\"why\"><span class=\"en\">had better to notify</span> est faux.</span>"},
+  {d:"g-modaux", n:65, f:"The parcel isn't here — it ___ been sent to the wrong address.", o:["should","must be","must","must have"], a:"must have", x:"<span class=\"en\">should have</span> + participe passé = reproche ; <span class=\"en\">could have</span> = c'était possible."},
+  {d:"g-modaux", n:66, f:"Employees ___ complete the training before June.", o:["will have to","will must","will can","must will"], a:"will have to", x:"Passe par une forme équivalente : <span class=\"en\">will be able to, will have to</span>. <span class=\"why\"><span class=\"en\">will must</span> n'existe pas.</span>"},
+  {d:"g-modaux", n:67, f:"The printer needs ___ before the audit.", o:["be serviced","to be serviced","served","to service"], a:"to be serviced", x:"<span class=\"en\">need to be repaired</span> (passif) ou <span class=\"en\">need repairing</span> (gérondif) — même sens."},
   // ——— GRAMMAIRE · PRÉPOSITIONS ———
-  {d:"g-prep", n:68, f:"The board meets ___ the last Friday of every month.", a:"on", x:"<span class=\"en\">in</span> + mois, année, saison · <span class=\"en\">on</span> + jour, date · <span class=\"en\">at</span> + heure."},
-  {d:"g-prep", n:69, f:"Our new showroom is ___ the third floor.", a:"on", x:"<span class=\"en\">in</span> + espace fermé, ville · <span class=\"en\">on</span> + surface, étage, rue · <span class=\"en\">at</span> + point précis, adresse."},
-  {d:"g-prep", n:70, f:"Please return the signed contract ___ Thursday.", a:"by", x:"<span class=\"en\">by</span> vise une échéance ponctuelle, <span class=\"en\">until</span> une durée qui s'arrête. <span class=\"why\"><span class=\"en\">until Thursday</span> voudrait dire « continue de le rendre jusqu'à jeudi ». Question quasi garantie à chaque examen.</span>"},
+  {d:"g-prep", n:68, f:"The board meets ___ the last Friday of every month.", o:["by","in","on","at"], a:"on", x:"<span class=\"en\">in</span> + mois, année, saison · <span class=\"en\">on</span> + jour, date · <span class=\"en\">at</span> + heure."},
+  {d:"g-prep", n:69, f:"Our new showroom is ___ the third floor.", o:["in","at","to","on"], a:"on", x:"<span class=\"en\">in</span> + espace fermé, ville · <span class=\"en\">on</span> + surface, étage, rue · <span class=\"en\">at</span> + point précis, adresse."},
+  {d:"g-prep", n:70, f:"Please return the signed contract ___ Thursday.", o:["by","for","until","since"], a:"by", x:"<span class=\"en\">by</span> vise une échéance ponctuelle, <span class=\"en\">until</span> une durée qui s'arrête. <span class=\"why\"><span class=\"en\">until Thursday</span> voudrait dire « continue de le rendre jusqu'à jeudi ». Question quasi garantie à chaque examen.</span>"},
   {d:"g-prep", n:71, f:"The office will be closed ___ the renovation.", o:["for","during","while","since"], a:"during", x:"for + durée chiffrée, during + période nommée, while + proposition complète. <span class=\"why\"><span class=\"en\">for</span> exigerait un chiffre (<span class=\"en\">for two weeks</span>), <span class=\"en\">while</span> une proposition complète.</span>"},
-  {d:"g-prep", n:72, f:"You will receive a confirmation ___ 24 hours.", a:"within", x:"« within » = dans un délai maximum."},
-  {d:"g-prep", n:73, f:"The new pricing takes effect ___ January 1.", a:"as of", x:"« as of » = à compter de ; « no later than » = au plus tard."},
-  {d:"g-prep", n:74, f:"___ the interview, candidates must complete a short test.", a:"Prior to", x:"Registre formel, très présent dans les annonces et les mémos de la Part 6."},
-  {d:"g-prep", n:75, f:"Sales remained stable ___ the year.", a:"throughout", x:"« throughout » = tout au long de."},
-  {d:"g-prep", n:76, f:"The survey will run ___ May 3 to May 17.", a:"from", x:"Les paires ne se mélangent pas : jamais <span class=\"en\">between … to</span>."},
-  {d:"g-prep", n:77, f:"All departments must comply ___ the new security policy.", o:["on","to","with","for"], a:"with", x:"<span class=\"en\">depend on, apply for, comply with, consist of, result in, account for, subscribe to, specialize in, participate in, contribute to, refrain from, deal with, cope with, insist on, rely on</span>."},
-  {d:"g-prep", n:77, f:"The board is looking ___ the possibility of a merger.", o:["after","over","at","into"], a:"into", x:"Verbes à particule : la particule change le sens du verbe. <span class=\"en\">look into</span> (examiner), <span class=\"en\">cut down on</span> (réduire), <span class=\"en\">carry out</span> (effectuer), <span class=\"en\">call off</span> (annuler), <span class=\"en\">put off</span> (reporter), <span class=\"en\">take over</span> (reprendre), <span class=\"en\">set up</span> (créer), <span class=\"en\">turn down</span> (refuser), <span class=\"en\">go over</span> (passer en revue), <span class=\"en\">bring up</span> (soulever). <span class=\"why\"><span class=\"en\">look at</span> = regarder, <span class=\"en\">look into</span> = enquêter sur : la particule fait tout le sens.</span>"},
-  {d:"g-prep", n:77, f:"The corporation wants us to cut down ___ our expenses.", o:["on","at","over","in"], a:"on", x:"<span class=\"en\">cut down on</span> = réduire. La particule <b>et</b> la préposition sont imposées par le verbe : ni <span class=\"en\">cut down in</span>, ni <span class=\"en\">cut down at</span>. <span class=\"why\">Ratée le 8 septembre 2026.</span>"},
-  {d:"g-prep", n:78, f:"Part-time staff are now eligible ___ the bonus plan.", a:"for", x:"<span class=\"en\">responsible for, capable of, eligible for, familiar with, aware of, subject to, similar to, interested in, satisfied with, committed to, comparable to, consistent with</span>."},
-  {d:"g-prep", n:79, f:"There has been a sharp increase ___ shipping costs.", a:"in", x:"<span class=\"en\">an increase in, a demand for, access to, a solution to, the reason for, an effect on, a delay in, an interest in, a decline in</span>. <span class=\"why\"><span class=\"en\">increase of</span> s'emploie pour le montant : <span class=\"en\">an increase of 5%</span>.</span>"},
-  {d:"g-prep", n:80, f:"I am writing ___ behalf of our regional director.", a:"on", x:"<span class=\"en\">on behalf of, in charge of, in accordance with, in compliance with, with regard to, in the event of, in addition to, regardless of, due to, on a regular basis, in a timely manner</span>."},
-  {d:"g-prep", n:81, f:"Over 200 delegates ___ the annual convention.", a:"attended", x:"<span class=\"en\">discuss, attend, contact, mention, enter, reach, approach, answer, join</span> se construisent avec un complément direct. <span class=\"why\">Ni <span class=\"en\">attended to</span> ni <span class=\"en\">attended at</span>. Même logique : <span class=\"en\">discuss the budget, contact us, reach an agreement</span>.</span>"},
+  {d:"g-prep", n:72, f:"You will receive a confirmation ___ 24 hours.", o:["until","during","within","since"], a:"within", x:"« within » = dans un délai maximum."},
+  {d:"g-prep", n:73, f:"The new pricing takes effect ___ January 1.", o:["by then","prior to","no later","as of"], a:"as of", x:"« as of » = à compter de ; « no later than » = au plus tard."},
+  {d:"g-prep", n:74, f:"___ the interview, candidates must complete a short test.", o:["Prior to","Throughout","As of","Following"], a:"Prior to", x:"Registre formel, très présent dans les annonces et les mémos de la Part 6."},
+  {d:"g-prep", n:75, f:"Sales remained stable ___ the year.", o:["prior to","throughout","within","as of"], a:"throughout", x:"« throughout » = tout au long de."},
+  {d:"g-prep", n:76, f:"The survey will run ___ May 3 to May 17.", o:["during","between","from","since"], a:"from", x:"Les paires ne se mélangent pas : jamais <span class=\"en\">between … to</span>."},
+  {d:"g-prep", n:77, f:"All departments must comply ___ the new security policy.", o:["for","on","to","with"], a:"with", x:"<span class=\"en\">depend on, apply for, comply with, consist of, result in, account for, subscribe to, specialize in, participate in, contribute to, refrain from, deal with, cope with, insist on, rely on</span>."},
+  {d:"g-prep", n:77, f:"The board is looking ___ the possibility of a merger.", o:["into","after","over","at"], a:"into", x:"Verbes à particule : la particule change le sens du verbe. <span class=\"en\">look into</span> (examiner), <span class=\"en\">cut down on</span> (réduire), <span class=\"en\">carry out</span> (effectuer), <span class=\"en\">call off</span> (annuler), <span class=\"en\">put off</span> (reporter), <span class=\"en\">take over</span> (reprendre), <span class=\"en\">set up</span> (créer), <span class=\"en\">turn down</span> (refuser), <span class=\"en\">go over</span> (passer en revue), <span class=\"en\">bring up</span> (soulever). <span class=\"why\"><span class=\"en\">look at</span> = regarder, <span class=\"en\">look into</span> = enquêter sur : la particule fait tout le sens.</span>"},
+  {d:"g-prep", n:77, f:"The corporation wants us to cut down ___ our expenses.", o:["in","on","at","over"], a:"on", x:"<span class=\"en\">cut down on</span> = réduire. La particule <b>et</b> la préposition sont imposées par le verbe : ni <span class=\"en\">cut down in</span>, ni <span class=\"en\">cut down at</span>. <span class=\"why\">Ratée le 8 septembre 2026.</span>"},
+  {d:"g-prep", n:78, f:"Part-time staff are now eligible ___ the bonus plan.", o:["to","of","for","with"], a:"for", x:"<span class=\"en\">responsible for, capable of, eligible for, familiar with, aware of, subject to, similar to, interested in, satisfied with, committed to, comparable to, consistent with</span>."},
+  {d:"g-prep", n:79, f:"There has been a sharp increase ___ shipping costs.", o:["to","for","of","in"], a:"in", x:"<span class=\"en\">an increase in, a demand for, access to, a solution to, the reason for, an effect on, a delay in, an interest in, a decline in</span>. <span class=\"why\"><span class=\"en\">increase of</span> s'emploie pour le montant : <span class=\"en\">an increase of 5%</span>.</span>"},
+  {d:"g-prep", n:80, f:"I am writing ___ behalf of our regional director.", o:["on","in","at","with"], a:"on", x:"<span class=\"en\">on behalf of, in charge of, in accordance with, in compliance with, with regard to, in the event of, in addition to, regardless of, due to, on a regular basis, in a timely manner</span>."},
+  {d:"g-prep", n:81, f:"Over 200 delegates ___ the annual convention.", o:["assisted","attended","arrived","attended to"], a:"attended", x:"<span class=\"en\">discuss, attend, contact, mention, enter, reach, approach, answer, join</span> se construisent avec un complément direct. <span class=\"why\">Ni <span class=\"en\">attended to</span> ni <span class=\"en\">attended at</span>. Même logique : <span class=\"en\">discuss the budget, contact us, reach an agreement</span>.</span>"},
   // ——— GRAMMAIRE · DÉTERMINANTS ———
   {d:"g-det", n:82, f:"The interview lasted ___ hour and a half.", a:"an", x:"<span class=\"en\">an hour, an MBA, an honest answer</span> · <span class=\"en\">a university, a European client, a one-year contract</span>."},
   {d:"g-det", n:83, f:"We interviewed three candidates; ___ second one was the strongest.", a:"the", x:"« the » quand on sait de quel élément précis on parle."},
@@ -777,7 +782,7 @@ const CARDS = [
   {d:"g-quant", n:99, f:"Our costs are lower ___ the industry average.", a:"than", x:"« than » sert à comparer, « then » veut dire ensuite."},
   {d:"g-quant", n:100, f:"Sales were ___ than expected in the third quarter.", a:"worse", x:"<span class=\"en\">good → better → best</span> · <span class=\"en\">bad → worse → worst</span> · <span class=\"en\">far → further</span> · <span class=\"en\">little → less</span>."},
   {d:"g-quant", n:101, f:"Our production costs are lower than ___ of our competitors.", a:"those", x:"Le TOEIC vérifie le parallélisme : <span class=\"en\">that of / those of</span>."},
-  {d:"g-quant", f:"The different regions have been rivals for ___ years.", o:["hundred","hundreds of","hundreds","a hundred of"], a:"hundreds of", x:"Quantité indéfinie : <span class=\"en\">hundreds / thousands / millions of</span> + nom pluriel. Après un chiffre précis, au contraire, singulier et sans <span class=\"en\">of</span> : <span class=\"en\">two hundred years</span>. <span class=\"why\">Cette règle ne figure pas dans la fiche 2 (section Quantité, règles 90 à 101) : c'est un manque. Ratée le 8 septembre 2026.</span>"},
+  {d:"g-quant", f:"The different regions have been rivals for ___ years.", o:["a hundred of","hundred","hundreds of","hundreds"], a:"hundreds of", x:"Quantité indéfinie : <span class=\"en\">hundreds / thousands / millions of</span> + nom pluriel. Après un chiffre précis, au contraire, singulier et sans <span class=\"en\">of</span> : <span class=\"en\">two hundred years</span>. <span class=\"why\">Cette règle ne figure pas dans la fiche 2 (section Quantité, règles 90 à 101) : c'est un manque. Ratée le 8 septembre 2026.</span>"},
   // ——— GRAMMAIRE · RELATIFS ———
   {d:"g-rel", n:102, f:"The technician ___ installed the system will return next week.", a:"who", x:"« who » pour les personnes, « which » pour les choses, « that » pour les deux."},
   {d:"g-rel", n:103, f:"We are looking for a supplier ___ prices remain stable.", a:"whose", x:"Toujours suivi directement d'un nom, sans article."},
@@ -797,10 +802,10 @@ const CARDS = [
   {d:"g-pron", n:116, f:"Each department must submit ___ own budget proposal.", a:"its", x:"En Part 6, il assure la cohérence du texte : repère de qui on parle dans la phrase précédente. <span class=\"why\"><span class=\"en\">their</span> est tentant, mais <span class=\"en\">each department</span> est singulier.</span>"},
   {d:"g-pron", n:117, f:"Two proposals were accepted; ___ were rejected.", a:"the others", x:"« the others » désigne tous ceux qui restent."},
   // ——— GRAMMAIRE · MOTS DE LIAISON ———
-  {d:"g-conn", n:118, f:"___ the deadline was tight, the team finished on time.", o:["In spite of","Despite","Although","However"], a:"Although", x:"Ces trois mots introduisent une proposition complète (sujet + verbe)."},
-  {d:"g-conn", n:119, f:"___ the tight deadline, the team finished on time.", o:["Even though","Whereas","Although","Despite"], a:"Despite", x:"Même sens que <span class=\"en\">although</span>, mais jamais suivi d'une phrase conjuguée. <span class=\"why\"><span class=\"en\">Despite the deadline was tight</span> est la faute que le TOEIC te tend une fois sur deux. Test : si un verbe conjugué suit, il faut <span class=\"en\">although</span>.</span>"},
+  {d:"g-conn", n:118, f:"___ the deadline was tight, the team finished on time.", o:["However","In spite of","Despite","Although"], a:"Although", x:"Ces trois mots introduisent une proposition complète (sujet + verbe)."},
+  {d:"g-conn", n:119, f:"___ the tight deadline, the team finished on time.", o:["Despite","Even though","Whereas","Although"], a:"Despite", x:"Même sens que <span class=\"en\">although</span>, mais jamais suivi d'une phrase conjuguée. <span class=\"why\"><span class=\"en\">Despite the deadline was tight</span> est la faute que le TOEIC te tend une fois sur deux. Test : si un verbe conjugué suit, il faut <span class=\"en\">although</span>.</span>"},
   {d:"g-conn", n:120, f:"The design was approved. ___, the budget was not.", a:"However", x:"<span class=\"en\">however</span> se détache par une virgule et relie deux phrases ponctuées."},
-  {d:"g-conn", n:121, f:"The flight was cancelled ___ severe weather.", o:["due to","therefore","although","because"], a:"due to", x:"« because » + phrase complète, « because of / due to » + groupe nominal."},
+  {d:"g-conn", n:121, f:"The flight was cancelled ___ severe weather.", o:["because","due to","therefore","although"], a:"due to", x:"« because » + phrase complète, « because of / due to » + groupe nominal."},
   {d:"g-conn", n:122, f:"Demand exceeded our forecast; ___, we increased production.", a:"therefore", x:"Ils annoncent la conséquence de ce qui précède."},
   {d:"g-conn", n:123, f:"The response was ___ positive that we extended the offer.", a:"so", x:"« so » + adjectif + that ; « such a » + nom + that."},
   {d:"g-conn", n:124, f:"The room includes Wi-Fi. ___, breakfast is provided.", a:"Moreover", x:"<span class=\"en\">in addition to</span> + nom ou <span class=\"en\">-ing</span> ; <span class=\"en\">in addition</span> seul, suivi d'une virgule."},
@@ -815,9 +820,9 @@ const CARDS = [
   {d:"g-conn", n:133, f:"Registration closed on Monday. ___, a few seats remain available.", a:"Nevertheless", x:"Lis la phrase d'avant et celle d'après, décide de la relation logique, <b>puis</b> regarde les propositions. <span class=\"why\">Le contexte dit « fermé » puis « il reste des places » : c'est un contraste, pas une conséquence.</span>"},
   {d:"g-conn", n:120, o:["Despite","Although","However","Because of"], f:"The deadline was tight. ___, the team finished on time.", a:"However", x:"Trois catégories, pas deux. <b>Conjonction</b> (<span class=\"en\">although, because, even if, while</span>) + sujet et verbe. <b>Préposition</b> (<span class=\"en\">despite, because of, due to, during</span>) + nom ou -ing. <b>Adverbe de liaison</b> (<span class=\"en\">however, nevertheless, therefore, moreover</span>) : il relie <b>deux phrases séparées</b>, après un point ou un point-virgule. <span class=\"why\">Ici la phrase précédente est terminée par un point : seul un adverbe peut suivre. <span class=\"en\">Although</span> et <span class=\"en\">Despite</span> exigeraient une seule et même phrase.</span>"},
   // ——— GRAMMAIRE · CONDITIONNEL ———
-  {d:"g-cond", n:134, f:"If the order exceeds €500, shipping ___ free.", o:["is","will be","would be","will have been"], a:"will be", x:"Condition réelle et possible. <span class=\"why\">Jamais <span class=\"en\">if … will</span> dans la subordonnée.</span>"},
-  {d:"g-cond", n:135, f:"If we had more staff, we ___ the deadline.", o:["met","will meet","would meet","would have met"], a:"would meet", x:"Situation imaginaire au présent."},
-  {d:"g-cond", n:136, f:"If we had known about the delay, we ___ the client.", o:["had notified","would notify","will notify","would have notified"], a:"would have notified", x:"Regret sur le passé."},
+  {d:"g-cond", n:134, f:"If the order exceeds €500, shipping ___ free.", o:["will have been","is","will be","would be"], a:"will be", x:"Condition réelle et possible. <span class=\"why\">Jamais <span class=\"en\">if … will</span> dans la subordonnée.</span>"},
+  {d:"g-cond", n:135, f:"If we had more staff, we ___ the deadline.", o:["would have met","met","will meet","would meet"], a:"would meet", x:"Situation imaginaire au présent."},
+  {d:"g-cond", n:136, f:"If we had known about the delay, we ___ the client.", o:["would have notified","had notified","would notify","will notify"], a:"would have notified", x:"Regret sur le passé."},
   {d:"g-cond", n:137, f:"___ you need further assistance, please contact our support team.", a:"Should", x:"On supprime <span class=\"en\">if</span> et on inverse. Très fréquent en fin de lettre commerciale."},
   {d:"g-cond", n:138, f:"I wish we ___ more time to review the contract.", a:"had", x:"« wish » + prétérit = regret présent ; + past perfect = regret passé."},
   {d:"g-cond", n:139, f:"The auditor recommended that the company ___ its records monthly.", a:"review", x:"<span class=\"en\">that</span> + sujet + <b>base verbale</b>, sans <span class=\"en\">-s</span> et sans <span class=\"en\">to</span>. <span class=\"why\"><span class=\"en\">reviews</span> est la réponse piège : le subjonctif ne s'accorde pas.</span>"},
@@ -833,33 +838,33 @@ const CARDS = [
   {d:"g-ordre", n:148, f:"Not only ___ the report late, but it was also incomplete.", a:"was", x:"<span class=\"en\">Never, Rarely, Not only, Under no circumstances</span> + auxiliaire + sujet."},
   {d:"g-ordre", n:149, f:"They installed two ___ machines last month.", a:"large new German", x:"Ordre des adjectifs : opinion, taille, âge, couleur, origine, matière."},
   // ——— GRAMMAIRE · MOTS CONFONDUS ———
-  {d:"g-confus", n:150, f:"The company plans to ___ prices by 3% next year.", a:"raise", x:"<span class=\"en\">rise, rose, risen</span> sans complément · <span class=\"en\">raise, raised, raised</span> avec complément. <span class=\"why\"><span class=\"en\">Prices rose</span> (elles montent) mais <span class=\"en\">the company raised prices</span> (elle les augmente).</span>"},
-  {d:"g-confus", n:151, f:"The strike will ___ deliveries in the northern region.", a:"affect", x:"« affect » est le verbe, « effect » le nom."},
-  {d:"g-confus", n:152, f:"Please ___ that all forms are signed before submission.", a:"ensure", x:"ensure = garantir · insure = assurer (assurance) · assure = rassurer quelqu'un."},
-  {d:"g-confus", n:153, f:"Do not ___ your boarding pass.", a:"lose", x:"« lose » = perdre ; « loose » = ample, desserré."},
-  {d:"g-confus", n:154, f:"Our consultant will ___ you on the best option.", a:"advise", x:"« advice » est le nom, « advise » le verbe."},
-  {d:"g-confus", n:155, f:"This model is more ___ to run than the previous one.", a:"economical", x:"« economic » = de l'économie ; « economical » = peu coûteux."},
-  {d:"g-confus", n:156, f:"___ the base salary, the package includes a bonus.", a:"Besides", x:"« beside » = à côté de ; « besides » = en plus de."},
-  {d:"g-confus", n:157, f:"The two branches reported gains of 4% and 7%, ___.", a:"respectively", x:"respective = respectif · respectful = respectueux · respectively = dans l'ordre cité."},
-  {d:"g-confus", n:158, f:"The new module ___ our existing software.", a:"complements", x:"« complement » = compléter ; « compliment » = féliciter."},
-  {d:"g-confus", n:159, f:"We tested two vendors; the ___ offered faster delivery.", a:"latter", x:"« former » = le premier cité ; « latter » = le dernier cité."},
-  {d:"g-confus", n:160, f:"Our ___ concern is customer safety.", a:"principal", x:"« principal » = principal, directeur ; « principle » = principe."},
-  {d:"g-confus", n:161, f:"Please suggest an ___ date for the meeting.", a:"alternative", x:"« alternate » = en alternance ; « alternative » = de remplacement."},
+  {d:"g-confus", n:150, f:"The company plans to ___ prices by 3% next year.", o:["rise","raise","arise","arouse"], a:"raise", x:"<span class=\"en\">rise, rose, risen</span> sans complément · <span class=\"en\">raise, raised, raised</span> avec complément. <span class=\"why\"><span class=\"en\">Prices rose</span> (elles montent) mais <span class=\"en\">the company raised prices</span> (elle les augmente).</span>"},
+  {d:"g-confus", n:151, f:"The strike will ___ deliveries in the northern region.", o:["effective","effect","affect","effort"], a:"affect", x:"« affect » est le verbe, « effect » le nom."},
+  {d:"g-confus", n:152, f:"Please ___ that all forms are signed before submission.", o:["secure","insure","assure","ensure"], a:"ensure", x:"ensure = garantir · insure = assurer (assurance) · assure = rassurer quelqu'un."},
+  {d:"g-confus", n:153, f:"Do not ___ your boarding pass.", o:["lose","loosen","miss","loose"], a:"lose", x:"« lose » = perdre ; « loose » = ample, desserré."},
+  {d:"g-confus", n:154, f:"Our consultant will ___ you on the best option.", o:["advisor","advise","advised","advice"], a:"advise", x:"« advice » est le nom, « advise » le verbe."},
+  {d:"g-confus", n:155, f:"This model is more ___ to run than the previous one.", o:["economic","economics","economical","economy"], a:"economical", x:"« economic » = de l'économie ; « economical » = peu coûteux."},
+  {d:"g-confus", n:156, f:"___ the base salary, the package includes a bonus.", o:["Beside","Beyond","Behind","Besides"], a:"Besides", x:"« beside » = à côté de ; « besides » = en plus de."},
+  {d:"g-confus", n:157, f:"The two branches reported gains of 4% and 7%, ___.", o:["respectively","respective","respectable","respectfully"], a:"respectively", x:"respective = respectif · respectful = respectueux · respectively = dans l'ordre cité."},
+  {d:"g-confus", n:158, f:"The new module ___ our existing software.", o:["completes","complements","compliance","compliments"], a:"complements", x:"« complement » = compléter ; « compliment » = féliciter."},
+  {d:"g-confus", n:159, f:"We tested two vendors; the ___ offered faster delivery.", o:["later","last","latter","former"], a:"latter", x:"« former » = le premier cité ; « latter » = le dernier cité."},
+  {d:"g-confus", n:160, f:"Our ___ concern is customer safety.", o:["principally","principals","principle","principal"], a:"principal", x:"« principal » = principal, directeur ; « principle » = principe."},
+  {d:"g-confus", n:161, f:"Please suggest an ___ date for the meeting.", o:["alternative","alternatively","alternation","alternate"], a:"alternative", x:"« alternate » = en alternance ; « alternative » = de remplacement."},
   // ——— GRAMMAIRE · EXPRESSIONS FIGÉES ———
-  {d:"g-figees", n:162, f:"Please confirm your attendance ___ your earliest convenience.", a:"at", x:"« dès que possible » — formule polie de fin de courrier."},
-  {d:"g-figees", n:163, f:"Applications must be received ___ later than March 15.", a:"no", x:"« au plus tard le » — marque une date limite."},
-  {d:"g-figees", n:164, f:"Payment is due ___ receipt of the invoice.", a:"upon", x:"« upon » = dès, au moment de : dès réception, dès l'arrivée."},
-  {d:"g-figees", n:165, f:"All refunds are processed ___ accordance with our return policy.", a:"in", x:"« conformément à »."},
-  {d:"g-figees", n:166, f:"Prices are ___ to change without notice.", a:"subject", x:"« sous réserve de modification »."},
-  {d:"g-figees", n:167, f:"___ the event of a power failure, use the stairwell.", a:"In", x:"« en cas de » + nom ; « au cas où » + proposition."},
-  {d:"g-figees", n:168, f:"I am writing ___ behalf of the finance department.", a:"on", x:"« au nom de »."},
-  {d:"g-figees", n:169, f:"I am contacting you ___ regard to your recent order.", a:"with", x:"« concernant, au sujet de »."},
-  {d:"g-figees", n:170, f:"All requests are handled in a ___ manner.", a:"timely", x:"« dans les délais »."},
-  {d:"g-figees", n:171, f:"Installation is provided ___ of charge.", a:"free", x:"« gratuitement, sans frais supplémentaires »."},
-  {d:"g-figees", n:172, f:"Ms. Alvarez is ___ charge of the new distribution center.", a:"in", x:"« être responsable de »."},
-  {d:"g-figees", n:173, f:"Equipment is inspected on a regular ___.", a:"basis", x:"« régulièrement »."},
-  {d:"g-figees", n:174, f:"The renovation was completed two weeks ___ of schedule.", a:"ahead", x:"comme prévu · en avance · en retard."},
-  {d:"g-figees", n:175, f:"Your card will arrive next week; ___ the meantime, use the temporary code.", a:"in", x:"« en attendant »."},
+  {d:"g-figees", n:162, f:"Please confirm your attendance ___ your earliest convenience.", o:["by","at","in","on"], a:"at", x:"« dès que possible » — formule polie de fin de courrier."},
+  {d:"g-figees", n:163, f:"Applications must be received ___ later than March 15.", o:["never","not","no","none"], a:"no", x:"« au plus tard le » — marque une date limite."},
+  {d:"g-figees", n:164, f:"Payment is due ___ receipt of the invoice.", o:["within","against","under","upon"], a:"upon", x:"« upon » = dès, au moment de : dès réception, dès l'arrivée."},
+  {d:"g-figees", n:165, f:"All refunds are processed ___ accordance with our return policy.", o:["in","by","with","on"], a:"in", x:"« conformément à »."},
+  {d:"g-figees", n:166, f:"Prices are ___ to change without notice.", o:["subjected","subject","subjective","submitted"], a:"subject", x:"« sous réserve de modification »."},
+  {d:"g-figees", n:167, f:"___ the event of a power failure, use the stairwell.", o:["For","On","In","At"], a:"In", x:"« en cas de » + nom ; « au cas où » + proposition."},
+  {d:"g-figees", n:168, f:"I am writing ___ behalf of the finance department.", o:["for","in","at","on"], a:"on", x:"« au nom de »."},
+  {d:"g-figees", n:169, f:"I am contacting you ___ regard to your recent order.", o:["with","by","under","for"], a:"with", x:"« concernant, au sujet de »."},
+  {d:"g-figees", n:170, f:"All requests are handled in a ___ manner.", o:["timed","timely","timing","time"], a:"timely", x:"« dans les délais »."},
+  {d:"g-figees", n:171, f:"Installation is provided ___ of charge.", o:["clear","out","free","short"], a:"free", x:"« gratuitement, sans frais supplémentaires »."},
+  {d:"g-figees", n:172, f:"Ms. Alvarez is ___ charge of the new distribution center.", o:["at","under","on","in"], a:"in", x:"« être responsable de »."},
+  {d:"g-figees", n:173, f:"Equipment is inspected on a regular ___.", o:["basis","basics","basically","base"], a:"basis", x:"« régulièrement »."},
+  {d:"g-figees", n:174, f:"The renovation was completed two weeks ___ of schedule.", o:["front","ahead","before","advance"], a:"ahead", x:"comme prévu · en avance · en retard."},
+  {d:"g-figees", n:175, f:"Your card will arrive next week; ___ the meantime, use the temporary code.", o:["by","on","in","at"], a:"in", x:"« en attendant »."},
 ];
 
 // ——— Répétition espacée (boîtes de Leitner) ———
