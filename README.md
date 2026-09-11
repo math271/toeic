@@ -1,6 +1,6 @@
 # TOEIC Flashcards
 
-Application de flashcards en répétition espacée pour préparer le TOEIC : 563 cartes,
+Application de flashcards en répétition espacée pour préparer le TOEIC : 569 cartes,
 143 de vocabulaire et 175 de grammaire. Une page, aucune dépendance, aucun compte.
 
 **→ https://math271.github.io/toeic/**
