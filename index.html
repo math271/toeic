@@ -1010,6 +1010,14 @@ function pool() {
   });
 }
 
+function melanger(t) {
+  for (let i = t.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [t[i], t[j]] = [t[j], t[i]];
+  }
+  return t;
+}
+
 function buildQueue() {
   const now = Date.now();
   const due = [], fresh = [];
@@ -1018,10 +1026,13 @@ function buildQueue() {
     if (!st) fresh.push(c);
     else if (st.due <= now) due.push(c);
   }
-  due.sort((a, b) => state[cardId(a)].due - state[cardId(b)].due);
-  // mélange léger des nouvelles pour varier les thèmes
-  for (let i = fresh.length - 1; i > 0; i--) { const j = (i * 7919 + 13) % (i + 1); [fresh[i], fresh[j]] = [fresh[j], fresh[i]]; }
-  queue = due.concat(fresh.slice(0, NEW_PER_SESSION));
+  // Vrai mélange aléatoire (Fisher-Yates). L'ancien « mélange » utilisait
+  // une formule déterministe : il rendait le même ordre à chaque session.
+  melanger(due);
+  melanger(fresh);
+  // On mélange aussi la file finale : les révisions s'intercalent avec les
+  // cartes neuves au lieu de défiler en bloc avant elles.
+  queue = melanger(due.concat(fresh.slice(0, NEW_PER_SESSION)));
   sessionTotal = queue.length;
 }
 
